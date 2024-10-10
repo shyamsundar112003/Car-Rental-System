@@ -1,1268 +1,3450 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <vector>
-#include <sstream>
-#include <chrono>
-#include <iomanip>
 #include <limits>
+#include <vector>
+
+
 
 using namespace std;
-int C_counter;
-int E_counter;
-int CAR_counter;
+int ID;
 
-template <typename T>
-T getValidatedInput(const std::string& prompt) {
-    T value;
-    while (true) {
-        std::cout << prompt;
-        if (std::cin >> value) {
-            // Input was successful, break out of the loop
-            break;
-        } else {
-            // Clear the input buffer to handle invalid input
-            std::cin.clear();
-            // Discard the invalid input
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            // Provide an error message
-            std::cerr << "Invalid input. Please enter a valid value." << std::endl;
-        }
-    }
-    return value;
-}
-
-class Customer{
-    protected:
-    int id;
-    string name;
-    string password;
-    int dues;
-    int record;
-    string other_details;
-    int current;
-    public:
-    Customer(int id,  string& name,  string& password,int dues, int record,int current, string& other_details);
-
-    int get_dues()  { return dues; }
-    int get_record()  { return record; }
-
-void disp_cars() {
-        ifstream file("Cars.txt");
-        int model, tid;string condn, other_details,line,bdate, ddate,rentedby;
-        string avail; istringstream s; char comma;
-
-        while (getline(file,line)) { 
-            s.str(line); s>>model >> comma; std::getline(s,condn,',');  std::getline(s,other_details,','); getline(s,avail,','); std::getline(s,rentedby,',');std::getline(s,bdate,',');std::getline(s,ddate);
-            istringstream s1(rentedby); s1>>comma >> tid;
-            if (avail=="AVAILABLE" || (tid==this->id && comma =='C')) {
-                std::cout << model << " " << condn << " " << other_details <<" "<<avail<<" "<<rentedby<<" "<<bdate<<" "<<ddate<<endl;
-            } s.clear(); s1.clear();
-        }
-        file.close();
-    }
-    void set_current(int x){this->current=x;}
-
-
-    friend class DatabaseC;
-    friend void run(const string& role, int id);
-};
-
-Customer::Customer(int id,  string& name,  string& password,int dues, int record,int current,  string& other_details){
-    this->id=id; this->name=name; this->password=password; this->other_details=other_details; this->dues=dues; this->record=record;
-this->current=current;
-}
-
-
-class Employee{
-     protected:
-    int id;
-    string name;
-    string password;
-    string other_details;
-    int dues;
-    int record;
-    int current;
-    public:
-    Employee(int id,  string& name,  string& password,int dues, int record ,int current,  string& other_details);
-
-    int get_dues()  { return dues; }
-    int get_record()  { return record; }
-    
-
-   void disp_cars() {
-        ifstream file("Cars.txt");
-        int model, tid;string condn, other_details,line,bdate, ddate,rentedby;
-        string avail; istringstream s; char comma;
-
-        while (getline(file,line)) { 
-            s.str(line); s>>model >> comma; std::getline(s,condn,',');  std::getline(s,other_details,','); getline(s,avail,','); std::getline(s,rentedby,',');std::getline(s,bdate,',');std::getline(s,ddate);
-            istringstream s1(rentedby); s1>>comma >> tid;
-            if (avail=="AVAILABLE" || (tid==this->id && comma =='C')) {
-                std::cout << model << " " << condn << " " << other_details <<" "<<avail<<" "<<rentedby<<" "<<bdate<<" "<<ddate<<endl;
-            } s.clear(); s1.clear();
-        }
-        file.close();
-    }
-    void set_current(int x){this->current=x;}
-    friend class DatabaseE;
-    friend void run(const string& role, int id);
-};
-Employee::Employee(int id,  string& name,  string& password,int dues, int record,int current,  string& other_details){
-    this->id=id; this->name=name; this->password=password; this->other_details=other_details; this->dues=dues; this->record=record;
-this->current=current;
-}
-
-class Car {
-protected:
-    int model;
-    string condn;
-    string other_details;
-    string avail;
-    string rentedby;
-    string book_date;
-    string due_date;
-
-public:
-    Car(int model,string condn,string other_details, string avail, string rentedby,string book_date, string due_date);
-
-    void show_due_date() {
-        std::cout << due_date;
-    }
-
-    friend class CarDatabase;
-    friend class Manager;
-};
-Car::Car(int model,string condn,string other_details, string avail, string rentedby,string book_date, string due_date){
-    this->model=model; this->condn=condn; this->other_details=other_details; this->avail=avail; this->rentedby=rentedby;this->book_date=book_date; this->due_date=due_date;
-}
-class DatabaseC {
+class User
+{
 private:
-    string filename;
-    friend class Manager;
-
+    /* data */
 public:
-    DatabaseC( string filename);
-
-    void addCustomer(Customer& customer) {
-        ofstream file(filename, ios::app);
-        if (file.is_open()) {
-            file << customer.id << "," << customer.name << "," << customer.password << ","
-                 << customer.dues << "," << customer.record << ","<< customer.current<< ",";
-
-
-            file << customer.other_details << "\n";
-
-            file.close();
-            std::cout << "Customer added successfully.\n Assigned Employee id: "<< customer.id<< endl;
-        } else {
-            cerr << "Error opening file for adding customer.\n";
-        }
-    }
-
-    void updateCustomer(Customer& customer) {
-        fstream file(filename, ios::in | ios::out);
-        if (file.is_open()) {
-            vector<string> lines;
-            string line;
-
-            while (std::getline(file, line)) {
-                size_t pos = line.find(to_string(customer.id)); 
-                if (pos ==0) {
-                    line = to_string(customer.id) + "," + customer.name + "," + customer.password + ","
-                           + to_string(customer.dues) + "," + to_string(customer.record) + ","+ to_string(customer.current) + ",";
-
-                    line += customer.other_details;
-                }
-                lines.push_back(line);
-            }
-
-            file.close();
-
-            ofstream outFile(filename);
-            for ( auto& l : lines) {
-                outFile << l << "\n";
-            }
-
-            std::cout << "Customer updated successfully.\n";
-        } else {
-            cerr << "Error opening file for updating customer.\n";
-        }
-    }
-
-    void deleteCustomer(int personId) {
-    ifstream fileIn(filename);
-    if (!fileIn.is_open()) {
-        cerr << "Error opening file for deleting customer.\n";
-        return;
-    }
-
-    ofstream fileOut("temp.txt");
-    string line;
-    bool deleted = false;
-
-    while (std::getline(fileIn, line)) {
-        std::cout << line << " ";
-        std::cout << line.find(to_string(personId)) << endl;
-        if (line.find(to_string(personId)) !=0) {
-            fileOut << line << "\n";
-        } else {
-            deleted = true;
-        }
-    }
-
-    fileIn.close();
-    fileOut.close();
-
-    if (deleted) {
-        remove(filename.c_str());
-        rename("temp.txt", filename.c_str());
-        std::cout << "Customer deleted successfully.\n";
-    } else {
-        std::cout << "Customer not found.\n";
-        remove("temp.txt");
-    }
-}
-
-    string searchCustomer(int customerId) {
-    ifstream file(filename);
-
-    if (!file.is_open()) {
-        cerr << "Error opening file for searching customer: " << filename << endl;
-        return "";
-    }
-
-    string line;
-    bool found = false;
-
-    while (std::getline(file, line)) {
-        size_t pos = line.find(to_string(customerId));
-        if (pos ==0) {
-            std::cout << "Customer found:\n" << line << "\n";
-            found = true;
-            file.close(); // Close the file before returning
-            return line;
-        }
-    }
-
-    file.close();
-
-    if (!found) {
-        std::cout << "Customer not found.\n";
-    }
-
-    return "\0";
-}
-
-
-    void viewCustomer() {
-        ifstream file(filename);
-        if (file.is_open()) {
-            string line;
-            while (std::getline(file, line)) {
-                std::cout << line << "\n";
-                line.clear();
-            }
-            file.close();
-        } else {
-            cerr << "Error opening file for viewing customers.\n";
-        }
-    }
-};
-DatabaseC::DatabaseC( string filename){
-    this->filename=filename;
-}
-class DatabaseE {
-private:
-    string filename;
-    friend class Manager;
-
-public:
-    DatabaseE(string filename);
-
-    void addEmployee(Employee& employee) {
-        ofstream file(filename, ios::app);
-        if (file.is_open()) {
-            file << employee.id << "," << employee.name << "," << employee.password << ","
-                 << employee.dues << "," << employee.record << ","<< employee.current << ",";
-
-
-            file << employee.other_details << "\n";
-
-            file.close();
-            std::cout << "Employee added successfully.\n Assigned Employee id : "<< employee.id<<endl;
-        } else {
-            cerr << "Error opening file for adding Employee.\n";
-        }
-    }
-
-    void updateEmployee(Employee& employee) {
-        fstream file(filename, ios::in | ios::out);
-        if (file.is_open()) {
-            vector<string> lines;
-            string line;
-
-            while (std::getline(file, line)) {
-                size_t pos = line.find(to_string(employee.id));
-                if (pos ==0) {
-                    line = to_string(employee.id) + "," + employee.name + "," + employee.password + ","
-                           + to_string(employee.dues) + "," + to_string(employee.record) + "," + to_string(employee.current) + ",";
-
-                    line += employee.other_details;
-                }
-                lines.push_back(line);
-            }
-
-            file.close();
-
-            ofstream outFile(filename);
-            for (auto& l : lines) {
-                outFile << l << "\n";
-            }
-
-            std::cout << "Employee updated successfully.\n";
-        } else {
-            cerr << "Error opening file for updating Employee.\n";
-        }
-    }
-
-    void deleteEmployee(int employeeId) {
-        ifstream fileIn(filename);
-        if (!fileIn.is_open()) {
-            cerr << "Error opening file for deleting Employee.\n";
-            return;
-        }
-
-        ofstream fileOut("temp.txt");
-        string line;
-        bool deleted = false;
-
-        while (std::getline(fileIn, line)) {
-            if (line.find(to_string(employeeId)) !=0) {
-                fileOut << line << "\n";
-            } else {
-                deleted = true;
-            }
-        }
-
-        fileIn.close();
-        fileOut.close();
-
-        if (deleted) {
-            remove(filename.c_str());
-            rename("temp.txt", filename.c_str());
-            std::cout << "Employee deleted successfully.\n";
-        } else {
-            std::cout << "Employee not found.\n";
-            remove("temp.txt");
-        }
-    }
-
-    string searchEmployee(int employeeId) {
-        ifstream file(filename);
-        if (file.is_open()) {
-            string line;
-            bool found = false;
-
-            while (std::getline(file, line)) {
-                size_t pos = line.find(to_string(employeeId));
-                if (pos ==0) {
-                    std::cout << "Employee found:\n" << line << "\n";
-                    found = true;
-                    return line;
-                    break;
-                }
-            }
-
-            file.close();
-
-            if (!found) {
-                std::cout << "Employee not found.\n";
-            }
-        } else {
-            cerr << "Error opening file for searching Employees.\n";
-        }
-        return "\0";
-    }
-
-    void viewEmployee() {
-        ifstream file(filename);
-        if (file.is_open()) {
-            string line;
-            while (std::getline(file, line)) {
-                std::cout << line << "\n";
-            }
-            file.close();
-        } else {
-            cerr << "Error opening file for viewing Employees.\n";
-        }
-    }
-};
-
-DatabaseE::DatabaseE( string filename){
-    this->filename=filename;
-}
-
-class CarDatabase {
-private:
-    string filename;
-    friend class Manager;
-
-public:
-    CarDatabase(string filename);
-
-    void addCar(Car& car) {
-        ofstream file(filename, ios::app);
-        if (file.is_open()) {
-            file << car.model << "," << car.condn << "," << car.other_details << ","
-                 << car.avail<<"," <<car.rentedby<< "," << car.book_date << "," << car.due_date << "\n";
-
-            file.close();
-            std::cout << "Car added successfully.\nAssigned Car model:"<<car.model<< endl;
-        } else {
-            cerr << "Error opening file for adding car.\n";
-        }
-    }
-
-    void updateCar(Car& newCar) {
-        fstream file(filename, ios::in | ios::out);
-        if (file.is_open()) {
-            vector<string> lines; istringstream s; char comma; int id;
-            string line;
-
-            while (std::getline(file, line)) {
-                s.str(line); s>>id>>comma; s.clear();
-                if (id ==newCar.model){
-                    line = to_string(newCar.model) + "," + newCar.condn + "," + newCar.other_details + ","
-                           + newCar.avail + "," + newCar.rentedby+","+ newCar.book_date + "," 
-                           + newCar.due_date;
-                }
-                lines.push_back(line);
-            }
-
-            file.close();
-
-            ofstream outFile(filename);
-            for (auto& l : lines) {
-                outFile << l << "\n";
-            }
-
-            std::cout << "Car updated successfully.\n";
-        } else {
-            cerr << "Error opening file for updating car.\n";
-        }
-    }
-
-    void deleteCar(int carModel) {
-        ifstream fileIn(filename);
-        if (!fileIn.is_open()) {
-            cerr << "Error opening file for deleting car.\n";
-            return;
-        }
-
-        ofstream fileOut("temp.txt");
-        string line;
-        bool deleted = false;
-
-        while (std::getline(fileIn, line)) {
-            if (line.find(to_string(carModel)) !=0) {
-                fileOut << line << "\n";
-            } else {
-                deleted = true;
-            }
-        }
-
-        fileIn.close();
-        fileOut.close();
-
-        if (deleted) {
-            remove(filename.c_str());
-            rename("temp.txt",filename.c_str());
-            std::cout << "Car deleted successfully.\n";
-        } else {
-            std::cout << "Car not found.\n";
-            remove("temp.txt");
-        }
-    }
-
-    string searchCar(int carModel) {
-        ifstream file(filename);
-        if (file.is_open()) {
-            string line; istringstream s; char comma; int id;
-            bool found = false;
-
-            while (std::getline(file, line)) {
-                 s.str(line); s>>id>>comma; s.clear();
-                if (id==carModel) {
-                    std::cout << "Car found:\n" << line << "\n";
-                    found = true;
-                    return line;
-                    break;
-                }
-            }
-
-            file.close();
-
-            if (!found) {
-                std::cout << "Car not found.\n";
-            }
-        } else {
-            cerr << "Error opening file for searching cars.\n";
-        }
-        return "\0";
-    }
-
-    void viewCars() {
-        ifstream file(filename);
-        if (file.is_open()) {
-            string line;
-            while (std::getline(file, line)) {
-                std::cout << line << "\n";
-            }
-            file.close();
-        } else {
-            cerr << "Error opening file for viewing cars.\n";
-        }
-    }
-};
-CarDatabase::CarDatabase(string filename){this->filename=filename;}
-
-class Manager{
-    protected:
-    int id;
     string name;
-    string password;
+    int id;
+    int password;
+};
+
+
+
+
+
+
+class Customer: public User
+{
+private:
+    /* data */
 public:
-    void addCustomer(DatabaseC& db, Customer& customer) {
-        db.addCustomer(customer);
-    }
-
-    void updateCustomer(DatabaseC& db,  Customer& person) {
-        db.updateCustomer(person);
-    }
-
-    void deleteCustomer(DatabaseC& db, int personId) {
-        db.deleteCustomer(personId);
-    }
-
-    void viewCustomer(DatabaseC& db) {
-        db.viewCustomer();
-    }
-
-    void searchCustomer(DatabaseC& db, int personId) {
-        db.searchCustomer(personId);
-    }
-
-     void addEmployee(DatabaseE& db, Employee& employee) {
-        db.addEmployee(employee);
-    }
-
-    void updateEmployee(DatabaseE& db,  Employee& employee) {
-        db.updateEmployee(employee);
-    }
-
-    void deleteEmployee(DatabaseE& db, int personId) {
-        db.deleteEmployee(personId);
-    }
-
-    void viewEmployee(DatabaseE& db) {
-        db.viewEmployee();
-    }
-
-    void searchEmployee(DatabaseE& db, int personId){
-        db.searchEmployee(personId);
-    }
-
-
-    void addCar(CarDatabase& carDb,  Car& car) {
-        carDb.addCar(car);
-    }
-
-    void updateCar(CarDatabase& carDb,Car& car) {
-        carDb.updateCar(car);
-    }
-
-    void deleteCar(CarDatabase& carDb,  int carModel) {
-        carDb.deleteCar(carModel);
-    }
-
-    void viewCars(CarDatabase& carDb) {
-        carDb.viewCars();
-    }
-    void searchCar(CarDatabase& carDb,  int carModel){
-        carDb.searchCar(carModel);
-    }
-
-    void displayCarInfo(Car& car, CarDatabase& carDb) {
-        std::cout << "Car Model: " << car.model << endl;
-        std::cout << "Condition: " << car.condn << endl;
-        std::cout << "Other Details: " << car.other_details << endl;
-        std::cout << "Availability: " << car.avail  << endl;
-        std::cout << "Book Date: " << car.book_date << endl;
-        std::cout << "Due Date: " << car.due_date;
-        std::cout << "\n---\n";
-    }
-
-    Manager(void);
-};
-Manager::Manager(void){
-    this->id=1; this->name="manager";this->password="123"; 
+    static int customerCount;
+    
+    string rentedCars;
+    int fineDue;
+    // string degree;
+    int customer_record;
+   
+    friend void addCustomer(void);
+    friend void deleteData(void);
+    void setCustomer(int i);
+    void printCustomer(void);
+    void readRentableCarData(void);
+    void rentaCar(void);
+    void rentedCarData(void);
+    void returnRequest(void);
+    void updateFine(int newFine);
+    void updateCustomerRecord(void);
+    // void addCustomer();
+    // void print(Customer &obj);
 };
 
-int* login_signup( string role) {
+class Employee: public User
+{
+private:
+    /* data */
+public:
     
-    string file = role + "s.txt";
-    
-    int t = 0;    
-    int* x = new int[2];
+    string rentedCars;
+    int fineDue;
+    // string degree;
+    int customer_record;
+   
+    friend void addCustomer(void);
+    friend void deleteData(void);
+    void setEmployee(int i);
+    void printEmployee(void);
+    void readRentableCarData(void);
+    void rentaCar(void);
+    void rentedCarData(void);
+    void returnRequest(void);
+    void updateFine(int newFine);
+    void updateEmployeeRecord(void);
+   
+    // void addCustomer();
+    // void print(Customer &obj);
+};
 
-    while (1) {
-       
-        t=getValidatedInput<int>("Choose: \n 1.Enter '1' to login: \n2.Enter '2' to sign up(option only available for CUSTOMERS): \n3. Enter any other number to exit: \n");
+class Car
+{
+private:
+    /* data */
+public:
+
+int id;
+  string model;
+  int currentCustomerId;
+  int dueDateDay;
+  int dueDateMonth;
+  int dueDateYear;
+  int condition;
+  int rent;
+//   friend void rentRequest(void);
+//   friend void showDueDate(void);
+  void setCarRentDate(int a, int b, int c, int d,int e);
+};
+
+int checkCarId(int id){
+     Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
         
-
-         if (t == 1&&role!="Manager"&&(role=="Customer"||role=="Employee")) {
-            ifstream inFile1(file, ios::app);
-            int id, tid, a, ufound = 0;
-            string pwd, tpwd, line,dummy;
-            id= getValidatedInput<int>("Enter your id:");
-            pwd= getValidatedInput<string>("Enter password:");
-
-            while (std::getline(inFile1, line)) {
-                stringstream ss(line);
-                ss>>tid;  // Read the 1st attribute
-                std::getline(ss, dummy,',');  std::getline(ss, dummy, ',');  // Skip the 2nd attribute
-                std::getline(ss, tpwd, ','); // Read the 3rd attribute
-                if (tid == id) {
-                    ufound = 1;
-                    if (tpwd == pwd) { // Use == for password comparison
-                        std::cout << "Login Successful\n";
-                        inFile1.close();
-                        x[0] = 1;
-                        x[1] = id;
-                        return x;
-                    }
-                }
-            }
-
-            if (ufound == 0) {
-                std::cout << "User not registered\n";
-            } else {
-                std::cout << "Incorrect PASSWORD\n";
-            }
-            inFile1.close(); // Close the file on error
-            continue;
-        } 
-        else if(t == 1&&role=="Manager"){
-            int id; string pwd;
-            id= getValidatedInput<int>("Enter your id:");
-            pwd= getValidatedInput<string>("Enter password:");
-            if(id==1&&pwd=="manager"){
-                std::cout << "Login Successful\n";
-                x[0]=1; x[1]=1;
-                return x;
-            }
-            else{std::cout<<"Incorrect ID or PASSWORD"; continue;}
-        }
-        else if (t == 2) {
-            ofstream inFile1(file, ios::app);
-            if (role == "Customer") {
-                string pwd, name, other_details; int record = 40;
-                std::cout << "Enter your name:\n";
-                std::cin.ignore();
-                std::getline(std::cin, name);
-                
-                pwd= getValidatedInput<string>("Create a Password:\n");
-
-                std::cout << "Enter other details(if none, enter 'NA')\n";
-                std::cin.ignore();
-                std::getline(std::cin, other_details);
-
-                C_counter++;
-                inFile1 << C_counter << "," << name << "," << pwd << ","<< 0 << "," << record<< "," << 0 << "," << other_details<<"\n";
-                std::cout << "Successfully Registered.\n Assigned Customer id:" << C_counter<<endl;
-            } else {
-                std::cout << "Sign up not available for the roles: 'Employee' and 'Manager'\n";
-            }
-            inFile1.close();
-            continue;
-        } 
-        else {
-            x[0] = 0;
-            return x;
-        }
-    }
-}
-
-void run(const std::string& role, int id) {
-
-    DatabaseC customerDb("Customers.txt");
-    DatabaseE employeeDb("Employees.txt");
-    CarDatabase carDb("Cars.txt");
-    std::string name, pwd, othdetail, line;
-    int dues, record, x,n, maxCars;
-
-    if (role == "Customer") {
-        std::cout.setstate(std::ios_base::failbit); // set error flag, disabling output
-        line = customerDb.searchCustomer(id);
-        std::cout.clear(); // clear flags, reenabling output
-        std::istringstream iss(line), s1;
-        int model, current;
-        std::string extra, car, condn, other_details, rentedby, bdate, ddate;
-        char comma;
-        string avail;
-
-        // Extract values using std::getline
-        iss >> x >> comma;
-        std::getline(iss, name, ',');
-        std::getline(iss, pwd, ',');
-        iss >> dues >> comma >> record >> comma >> current >> comma;
-        std::getline(iss, othdetail);
-        Customer customer(id, name, pwd, dues, record, current, othdetail);
-
-        while (true) {
-
-            int choice;
-            choice= getValidatedInput<int>("\nCustomer Menu:\n1. Enter '1' to Display available/rented cars\n 2. Enter '2' to Rent a car\n 3. Enter '3' to  View personal information\n 4. Enter any other integer to Exit\n Enter your choice: \n");
-
-            switch (choice) {
-                case 1:
-                    customer.disp_cars();
-                    break;
-                case 2:
-                    maxCars = customer.record / 40;
-                    if (maxCars < 1) maxCars = 1;
-                    if (maxCars <= customer.current) {
-                        std::cout << "Customer not eligible to rent more cars\n";
-                        break;
-                    }
-                    model = getValidatedInput<int>("Enter the model of car you want to rent:");
-                   
-                    car = carDb.searchCar(model);
-                    if (car == "\0") { break; }
-                    s1.str(car);
-                    s1 >> model >> comma;
-                    std::getline(s1, condn, ',');
-                    std::getline(s1, other_details, ',');
-                    std::getline(s1, avail,',');
-
-                    if (avail=="AVAILABLE") {
-
-                        avail="NOT AVAILABLE";
-                        rentedby = "C" + std::to_string(customer.id);
-
-                        n=getValidatedInput<int>("Enter the number of days of lease:\n");
-
-                        ddate=getValidatedInput<string>("Enter lease date(format: DD-MM-YYYY): \n");
-
-                        std::cout << "The lease will amount to: Rs." << n * 100 << std::endl;
-
-                        extra= getValidatedInput<string>("To continue, enter 'YES', else enter anything else: \n");
-                        if (extra != "YES") { break; }
-
-
-                        // Get the current system time
-                        auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                        // Convert the time to a local time structure
-                        std::tm* localTime = std::localtime(&currentTime);
-                        // Format the date
-                        std::ostringstream oss;
-                        oss << std::put_time(localTime, "%d-%m-%Y");
-                        // Store the formatted date in a string
-                        bdate = oss.str();
-
-                        Car newcar(model, condn, other_details, avail, rentedby, bdate, ddate);
-                        carDb.updateCar(newcar);
-                        current++;
-                        customer.set_current(current);
-                        customerDb.updateCustomer(customer);
-                    } else {
-                        std::cout << "Chosen Car is currently unavailable";
-                    }
-                    break;
-                case 3:
-                    std::cout << "Personal Information:\n";
-                    std::cout << "Customer ID: " << customer.id << "\n";
-                    std::cout << "Name: " << customer.name << "\n";
-                    std::cout << "Password:" << customer.password;
-                    std::cout << "Other Details: " << customer.other_details << "\n";
-                    std::cout << "Dues: " << customer.get_dues() << "\n";
-                    std::cout << "Record: " << customer.get_record() << "\n";
-                    std::cout << "Number of Cars Rented: " << customer.current << "\n";
-                    break;
-                default:
-                    std::cout << "Exiting customer menu.\n";
-                    return;
-            }
-        }
-    }
-    else if (role == "Employee") {
-        std::cout.setstate(std::ios_base::failbit); // set error flag, disabling output
-        line= employeeDb.searchEmployee(id);
-        std::cout.clear(); // clear flags, reenabling output
-        std::istringstream iss(line); istringstream s1;
-        int model, current; string car,extra, condn, other_details,rentedby, bdate,ddate; char comma; string avail;
-
-        // Extract values using std::getline
-        iss>>x; std::getline(iss, name, ','); std::getline(iss, pwd, ',');iss >> dues >> comma >> record >> comma>> current>> comma; std::getline(iss,othdetail);
-        Employee employee(id, name ,pwd, dues, record, current, othdetail);
-
-        while (true) {
-
-            int choice, model; 
-            choice= getValidatedInput<int>("\nCustomer Menu:\n1. Enter '1' to Display available/rented cars\n 2. Enter '2' to Rent a car\n 3. Enter '3' to  View personal information\n 4. Enter any other integer to Exit\n Enter your choice: \n");
-
-
-            switch (choice) {
-                // Similar functionality as in Customer's case
-                case 1:
-                    employee.disp_cars();
-                    break;
-                case 2:
-                    maxCars = employee.record / 40;
-                    if (maxCars < 1) maxCars = 1;
-                    if(maxCars<=employee.current){std::cout<< "Customer not eligible to rent more cars\n"; break;}
-                    model = getValidatedInput<int>("Enter the model of car you want to rent:");
-
-                    int n;
-                    car = carDb.searchCar(model);
-                    if(car=="\0"){break;}
-
-                    s1.str(car);
-                    s1 >> model >> comma; std::getline(s1,condn,','); std::getline(s1,other_details,','); s1>> avail >> comma;
-                    if(avail=="AVAILABLE"){
-                        avail="NOT AVAILABLE";
-                        rentedby="E"+ to_string(employee.id); 
-
-                        n=getValidatedInput<int>("Enter the number of days of lease:\n");
-                        
-                        ddate=getValidatedInput<string>("Enter lease date(format: DD-MM-YYYY): \n");
-
-                        std::cout<< "The lease will amount to: Rs." << n*100;
-                        extra= getValidatedInput<string>("To continue, enter 'YES', else enter anything else: \n");
-
-                        if(extra!="YES"){break;}
-
-                        // Get the current system time
-                        auto currentTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-                        // Convert the time to a local time structure
-                        std::tm* localTime = std::localtime(&currentTime);
-                        // Format the date
-                        std::ostringstream oss;
-                        oss << std::put_time(localTime, "%d-%m-%Y");
-                        // Store the formatted date in a string
-                        bdate = oss.str();
-
-                        Car newcar(model,condn,other_details,avail,rentedby,bdate,ddate);
-                        carDb.updateCar(newcar); 
-                        std::cout<<"Car leased successfully \n"; current++; employee.set_current(current); employeeDb.updateEmployee(employee);
-
-                    } 
-                    else{std::cout<<"Chosen Car is currently unavailable";}
-                    break;
-                case 3:
-                    std::cout << "Personal Information:\n";
-                    std::cout << "Customer ID: " << employee.id << "\n";
-                    std::cout << "Name: " << employee.name << "\n";
-                    std::cout << "Password:" << employee.password;
-                    std::cout << "Other Details: " << employee.other_details << "\n";
-                    std::cout << "Dues: " << employee.get_dues() << "\n";
-                    std::cout << "Record: " << employee.get_record() << "\n";
-                    std::cout << "Number of Cars Rented: " << employee.current << "\n";
-                    break;
-                default:
-                    std::cout << "Exiting employee menu.\n";
-                    return;
-                
-            }
-        }
-    }  
-    else if (role == "Manager") {
-        Manager manager;
-
-        while (true) {
-            std::cout << "Manager Menu:\n";
-            std::cout << "1. View all customers\n";
-            std::cout << "2. View all employees\n";
-            std::cout << "3. View all cars\n";
-            std::cout << "4. Add new customer\n";
-            std::cout << "5. Add new employee\n";
-            std::cout << "6. Add new car\n";
-            std::cout << "7. Update customer\n";
-            std::cout << "8. Update employee\n";
-            std::cout << "9. Update car\n";
-            std::cout <<"10. Delete customer\n";
-            std::cout <<"11. Delete employee\n";
-            std::cout <<"12. Delete car\n";
-            std::cout <<"13. Search customer\n";
-            std::cout <<"14. Search employee\n";
-            std::cout <<"15. Search car\n";
-            std::cout <<"16. Return car\n";
-            std::cout <<"17. Enter any other integer to exit\n";
-            std::cout <<"Enter your choice: ";
-            int choice;
-            std::cin >> choice;
-            int model; string condn; string other_details; string rentedby, bdate, ddate, avail;
-            int id1,current; int j=0;
-
-            switch (choice){
-                case 1:
-                    std::cout << "All Customers:\n";
-                    manager.viewCustomer(customerDb);
-                    break;
-                case 2:
-                    std::cout << "All Employees:\n";
-                    manager.viewEmployee(employeeDb);
-                    break;
-                case 3:
-                    std::cout << "All Cars:\n";
-                    manager.viewCars(carDb);
-                    break;
-                case 4: {
-                    
-                    std::cout<<"Enter the following details of the customer: name, password, other details(if none, enter\"NA\" \n) ";
-                    std::cin.ignore(); std::getline(std::cin,name);  pwd= getValidatedInput<string>("") ;std::getline(std::cin, othdetail);
-                    C_counter++;
-                    Customer newCustomer(C_counter,name,pwd,0, 40,0,othdetail);
-                    manager.addCustomer(customerDb, newCustomer);
-                    break;
-                }
-                case 5: {
-                    
-                    std::cout<<"Enter the following details of the employee: name, password, other details(if none, enter\"NA\" \n) ";
-                    std::cin.ignore(); std::getline(std::cin,name);   
-                    pwd= getValidatedInput<string>(""); 
-                    std::getline(std::cin, othdetail);
-
-                    E_counter++;
-                    Employee newEmployee(E_counter, name, pwd,0,40,0,othdetail);
-                    manager.addEmployee(employeeDb, newEmployee);
-                    break;
-                }
-                case 6: {
-                    std::cout<<"Enter the following Car details: condition,other details(if none, enter\"NA\":\n)";cin.clear();
-                    cin.ignore(); getline(cin,condn); 
-                    getline(cin,other_details);
+        read.ignore();
+        getline(read, car.model)
+;
         
-                    CAR_counter++; 
-                    cout<<other_details;
-                    Car newCar(CAR_counter,condn,other_details,"AVAILABLE","NA","NA","NA");
-                    manager.addCar(carDb, newCar);
-
-                    break;
-                }
-                case 7: {
-                    std::cout<<"Enter the following updated Customer details: \n";
-                    id1=getValidatedInput<int>("Enter original id of customer you want to update:\n");
-
-                    cout<<"Enter name:\n"; std::cin.ignore(); std::getline(std::cin,name);
-
-                    pwd=getValidatedInput<string>("Enter password:\n");
-
-                    cout<<"Enter other details(if none enter'NA'):\n"; std::getline(std::cin,othdetail);
-
-                    dues = getValidatedInput<int>("Enter dues:\n") ;
-
-                    record = getValidatedInput<int>("Enter record:\n") ;
-
-                    current = getValidatedInput<int>("Enter number of currently rented cars:\n") ;
-                    
-                    Customer newCustomer(id1, name, pwd,dues,record,current , othdetail);
-                    manager.updateCustomer(customerDb, newCustomer);
-                    break;
-                }
-                case 8: {
-                    std::cout<<"Enter the following updated Employee details: \n";
-                    id1=getValidatedInput<int>("Enter original id of customer you want to update:\n");
-
-                    cout<<"Enter name:\n"; std::cin.ignore(); std::getline(std::cin,name);
-
-                    pwd=getValidatedInput<string>("Enter password:\n");
-
-                    cout<<"Enter other details(if none enter'NA'):\n"; std::getline(std::cin,othdetail);
-
-                    dues = getValidatedInput<int>("Enter dues:\n") ;
-
-                    record = getValidatedInput<int>("Enter record:\n") ;
-
-                    current = getValidatedInput<int>("Enter number of currently rented cars:\n") ;                    
-                    Employee newEmployee(id1, name, pwd,dues,record,current, othdetail);
-                    manager.updateEmployee(employeeDb, newEmployee);
-                    break;
-                }
-                case 9: {cin.clear();
-                    std::cout<<"Enter the following updated Car details:\n";
-                    model= getValidatedInput<int>("Enter original model of car you want to update:\n");
-                    cout<<"Enter condition:\n"; std::cin.ignore(); std::getline(std::cin,condn);
-                    cout<<"Enter other details:\n";std::getline(std::cin,other_details); 
-                    cout<<"Enter availabilitty:\n"; std::getline(std::cin,avail);
-                    cin.clear();
-                    rentedby= getValidatedInput<string>("Enter concatenation of first letter of role and id of rentee:\n example: C2 or E2\n"); 
-                    cout<<"Enter Booking Date(format: dd-mm-yyyy , enter NA if none):\n";cin.ignore();getline(std::cin,bdate); 
-                    cout<<"Enter Due Date(format: dd-mm-yyyy , enter NA if none):\n";std::getline(std::cin,ddate);
-                    Car newCar(model,condn,other_details,avail,rentedby,bdate,ddate);
-                    
-                    manager.updateCar(carDb, newCar);
-                    break;
-                }
-                case 10: {
-                    id1 = getValidatedInput<int>("Enter id(integer) of customer you want to delete:\n");
-                    if(id1==C_counter){C_counter--;}
-                    manager.deleteCustomer(customerDb, id1);
-                    
-                    break;
-                }
-                case 11: {
-                    id1 = getValidatedInput<int>("Enter id(integer) of employee you want to delete:\n");
-                    if(id1==E_counter){E_counter--;}
-                    manager.deleteEmployee(employeeDb, id1);
-                    break;
-                }
-                case 12: {
-                    model = getValidatedInput<int>("Enter model(integer) of car you want to delete: \n");
-                    if(id1==CAR_counter){CAR_counter--;}
-                    manager.deleteCar(carDb, model);
-                    break;
-                }
-                case 13: {
-                    id1 = getValidatedInput<int>("Enter id(integer) of customer you want to search:\n");
-                    manager.searchCustomer(customerDb, id1);
-                    break;
-                }
-                case 14: {
-                    id1 = getValidatedInput<int>("Enter id(integer) of employee you want to search:\n");
-
-                    manager.searchEmployee(employeeDb, id1);
-                    break;
-                }
-                case 15: {
-                    model = getValidatedInput<int>("Enter model(integer) of car you want to search: \n");
-                    std::cin >> model;
-                    manager.searchCar(carDb, model);
-                    break;
-                }
-                case 16: {
-                    string role1, p,damage; int delay, comma , pay; int x[6],amount;
-                    
-                    model = getValidatedInput<int>("Enter model(integer) of car you want to return: \n");
-                        
-                        std::cout.setstate(std::ios_base::failbit); // set error flag, disabling output
-                        line=carDb.searchCar(model);
-                        std::cout.clear(); // clear flags, reenabling output
-                        
-                        if(line=="\0"){std::cout<<"Invalid Model, not found \n"; break;}                    
-                    
-                    delay = getValidatedInput<int>("Enter no. of days of delay in submission(if none enter 0): \n");
-                    
-                    damage= getValidatedInput<string>("Is the car damaged('YES' or 'NO'): \n");
-                    
-                    int fine= delay*100; if(damage=="YES"){fine+=500;}
-                    
-                    std::cout<<"Fine = Rs."<< fine<<endl;
-                    
-                    id1 = getValidatedInput<int>("Enter Rentee's id :\n");
-
-                    
-                    role1 = getValidatedInput<string>("Enter role of renter('Customer'or'Employee'): \n");
-                    
-                    pay = getValidatedInput<int>("1. Enter '1' to Pay Later \n 2.Enter any other integer to Pay Now \nChoose:\n");
-                    
-                    if(role1=="Employee"){
-                        std::cout.setstate(std::ios_base::failbit); // set error flag, disabling output
-                        p=employeeDb.searchEmployee(id1);
-                        std::cout.clear(); // clear flags, reenabling output
-                       if (p.empty()) {
-    std::cout << "ID not found \n";
-    break;
-}
-
-std::vector<int> x(6, 0); 
-
-for (int i = 0, j = 0; i < p.length() && j < 6; i++) {
-    if (p[i] == ',') {
-        x[j] = i;
-        j++;
+        // getline(read, customer.name);
+        read >> car.currentCustomerId;
+        // read >> customer.degree;
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.condition;
+        read >> car.rent;
+        if (car.id == id) {
+            // cout<<"\n\t"<<endl;
+            return 1;
+        }
     }
+    read.close();
+    return 0;   
 }
 
-
-id1 = stoi(p.substr(0, x[0]));
-name = p.substr(x[0] + 1, x[1] - x[0] - 1);
-pwd = p.substr(x[1] + 1, x[2] - x[1] - 1);
-dues = stoi(p.substr(x[2] + 1, x[3] - x[2] - 1));
-record = stoi(p.substr(x[3] + 1, x[4] - x[3] - 1));
-current = stoi(p.substr(x[4] + 1, x[5] - x[4] - 1));
-othdetail = p.substr(x[5] + 1, p.length() -x[5] - 1);
-
-
-dues+=fine;
-if (pay != 1) { 
-    amount= getValidatedInput<int>("Enter the amount you want to pay:\n Rs."); 
-    if(dues>=amount){dues-=amount;}else{dues=0;}
-}
-
-if (delay == 0) {
-    if (record + 40 > 100) {
-        record = 100;
-    } else {
-        record += 40;
+int checkCarId2(int returnid, int id){
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        
+        read.ignore();
+        getline(read, car.model)
+;
+        
+        // getline(read, customer.name);
+        
+        // read >> customer.degree;
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+         //cout<<car.id<<"\t"<<returnid<<"\t"<<car.currentCustomerId<<"\t"<<id<<endl;
+        if (car.id == returnid && car.currentCustomerId==id) {
+           // cout<<car.id<<"\t"<<returnid<<"\t"<<car.currentCustomerId<<"\t"<<id<<endl;
+            return 1;
+        }
     }
-} else {
-    if (record - 40 < 40) {
-        record = 40;
-    } else {
-        record -= 40;
+    read.close();
+    return 0;  
+}
+
+void addCar() {
+    Car car;
+    cout << "\n\tEnter car ID : ";
+     cin>>car.id;;
+         
+while(std::cin.fail() || car.id<1 || checkCarId(car.id)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(checkCarId(car.id)){std::cout<<"\n\tCar ID already exists \n\tEnter new ID: ";}
+    else{
+        std::cout << "\n\tInvaild ID.  Enter a (+) DIGITS : ";
     }
+    std::cin >> car.id;;
 }
-
-if (current !=0) {
-    current--;
-}
-
-                        Employee newEmployee(id1, name, pwd,dues,record,current, othdetail);
-
-                        employeeDb.updateEmployee(newEmployee);
-                    std::cout<<"Enter the following updated Car details: \n condition, other details(if none, enter\"NA\"):\n";
-                    std::cin.ignore(); std::getline(std::cin,condn);  
-                    std::getline(std::cin,other_details);
-
-                    Car newCar(model,condn,other_details,"AVAILABLE","NA","NA","NA");
-                    
-                    manager.updateCar(carDb, newCar);
-
-                    }
-                    if(role1=="Customer"){
-                        std::cout.setstate(std::ios_base::failbit); // set error flag, disabling output
-p = customerDb.searchCustomer(id1);
-std::cout.clear(); // clear flags, reenabling output
-
-if (p.empty()) {
-    std::cout << "ID not found \n";
-    break;
-}
-
-std::vector<int> x(6, 0); 
-
-for (int i = 0, j = 0; i < p.length() && j < 6; i++) {
-    if (p[i] == ',') {
-        x[j] = i; 
-        j++;
+    cout << "\n\tEnter car model name (single word): ";
+    cin>>car.model;
+    // getline(cin, ); //Nouman Habib
+    cout << "\n\tRate the car condition (0- 100) : ";
+    cin >> car.condition;
+    while(std::cin.fail() || car.condition<0 || car.condition>100) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number (0- 100)";
+        cout<<"\n\t";
+    std::cin >> car.condition;
     }
-}
 
-
-id1 = stoi(p.substr(0, x[0]));
-name = p.substr(x[0] + 1, x[1] - x[0] - 1);
-pwd = p.substr(x[1] + 1, x[2] - x[1] - 1);
-dues = stoi(p.substr(x[2] + 1, x[3] - x[2] - 1));
-record = stoi(p.substr(x[3] + 1, x[4] - x[3] - 1));
-current = stoi(p.substr(x[4] + 1, x[5] - x[4] - 1));
-othdetail = p.substr(x[5] + 1, p.length() -x[5] - 1);
-
-dues+=fine;
-if (pay != 1) { 
-    amount= getValidatedInput<int>("Enter the amount you want to pay:\n Rs."); 
-    if(dues>=amount){dues-=amount;}else{dues=0;}
-}
-
-if (delay == 0) {
-    if (record + 40 > 100) {
-        record = 100;
-    } else {
-        record += 40;
+    cout << "\n\tEnter car rent : ";
+    cin >> car.rent;
+    while(std::cin.fail() || car.rent<0 || car.rent>100000) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    
+        std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+        std::cin >> car.rent;
     }
-} else {
-    if (record - 40 < 40) {
-        record = 40;
-    } else {
-        record -= 40;
+        
+    car.dueDateDay=-1; 
+    car.dueDateMonth=-1;
+    car.dueDateYear=-1;  
+    car.currentCustomerId=-1;
+    
+    // ID++;
+
+    ofstream write;
+    write.open("car.txt", ios::app);
+    // write << "\n" << ID;
+    write << "\n" << car.id ;
+    write << "\n" << car.model ;
+    write << "\n" << car.currentCustomerId ;
+    write << "\n" << car.dueDateDay ;
+    write << "\n" << car.dueDateMonth ;
+    write << "\n" << car.dueDateYear ;
+    write << "\n" << car.condition;
+    write << "\n" << car.rent ;
+    write.close();
+    // write.open("id.txt");
+    // write << ID;
+    // write.close();
+    cout << "\n\tData save to file";
+}
+
+void printCar(Car s) {
+    cout << "\n\t---Car Data---";
+    cout << "\n\tCar ID : " << s.id;
+    cout<<"\n\tModel : "<<s.model;
+    if(s.currentCustomerId==-1){
+        cout<<"\n\tAvailable";
     }
+    else{
+        cout << "\n\tCar rented to : " << s.currentCustomerId;
+        cout << "\n\tRented on : " << s.dueDateDay<<"/"<<s.dueDateMonth<<"/"<<s.dueDateYear;
+    }
+    cout << "\n\tCar condition : " << s.condition;
+    // cout << "\n\tDegree : " << s.degree;
+    cout << "\n\tCar rent : " << s.rent<<endl;
+
 }
 
-if (current !=0) {
-    current--;
+void readAvailableCarData(){
+    Car car;
+    int numberofCars=0;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        if(car.currentCustomerId==-1){printCar(car);
+        numberofCars++;
+        }
+    }
+    read.close();
+    cout<<"\n\tTotal number of available cars : "<<numberofCars;
 }
 
+void readAvailableCarDataEmployee(){
+        Car car;
+    int numberofCars=0;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        int employeeRent= (((85*car.rent)/100));
+        car.rent=employeeRent;
+        if(car.currentCustomerId==-1){printCar(car);
+        numberofCars++;
+        }
+    }
+    read.close();
+    cout<<"\n\tTotal number of available cars : "<<numberofCars;
+}
 
+void readCarData() {
+    Car car;
+    int numberofCars=0;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        printCar(car);
+        numberofCars++;
+    }
+    read.close();
+    cout<<"\n\tTotal number of cars : "<<numberofCars;
+}
 
-Customer newCustomer(id1, name, pwd, dues, record, current, othdetail);
-customerDb.updateCustomer(newCustomer);
+int searchCarData() {
+    int id;
+    cout << "\n\tEnter car id want to search : ";
+    cin >> id;
+    while(std::cin.fail() || id<1) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        std::cout << "\n\tInvaild ID.  Enter a (+) DIGITS : ";
+    std::cin >> id;;
+}
+if(!checkCarId(id)){std::cout<<"\n\tNo such car ID exists";
+return 0;}
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
 
-std::cout << "Enter the following updated Car details: \n condition, other details(if none, enter\"NA\"):\n";
-std::cin.ignore();
-std::getline(std::cin, condn);
-std::getline(std::cin, other_details);
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
 
-Car newCar(model, condn, other_details, "AVAILABLE", "NA", "NA", "NA");
+        // read >> student.id;
+        // read.ignore();
+        // getline(read, student.name);
+        // read >> student.age;
+        // read >> student.degree;
+        // read >> student.semesterNo;
+        if (car.id == id) {
+            printCar(car);
+            return id;
+        }
+    }
+    
+       throw "No such car exists!";
+}
 
-manager.updateCar(carDb, newCar);
+void deleteCarData() {
 
-                    break;
-                    }
-                }
-                default:
-                    std::cout << "Invalid Role.\n"; return;
+    int id;
+    
+    try{
+        id = searchCarData();
+        
+    } catch(const char* msg){
+        throw "\n\tNo such car ID found";
+        cerr<<msg<<endl;
+        
+    }
+    cout << "\n\tDelete record (y/n) : ";
+    char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+
+    // int id = searchData();
+    // cout << "\n\tYou want to delete record (y/n) : ";
+    // char choice;
+    // cin >> choice;
+    if (choice == 'y') {
+        Car car;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("car.txt");
+        while (!read.eof()) {
+            read >> car.id;
+            read.ignore();
+            getline(read, car.model);
+            read >> car.dueDateDay;
+            read >> car.dueDateMonth;
+            read >> car.dueDateYear;
+            read >> car.currentCustomerId;
+            read >> car.condition;
+            read >> car.rent;
+            if (car.id != id) {
+                tempFile << "\n" << car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
             }
-        } 
-    } 
+        }
+        read.close();
+        tempFile.close();
+        remove("car.txt");
+        rename("temp.txt", "car.txt");
+        cout << "\n\tCar data deleted successfuly";
+    }
     else {
-        std::cout << "Invalid role.\n";
-    }
-}
-void saveGlobalVariables() {
-    std::ofstream outFile("globals.txt");
-
-    if (outFile.is_open()) {
-        outFile << C_counter << std::endl;
-        outFile << E_counter << std::endl;
-        outFile << CAR_counter << std::endl;
-
-        outFile.close();
-    } else {
-        std::cerr << "Unable to open Counter file for writing." << std::endl;
-    }
-}
-
-// Function to load global variables from a file
-void loadGlobalVariables() {
-    std::ifstream inFile("globals.txt");
-
-    if (inFile.is_open()) {
-        inFile >> C_counter;
-        inFile >> E_counter;
-        inFile >> CAR_counter;
-
-        inFile.close();
-    } else {
-        std::cerr << "Unable to Counter open file for reading." << std::endl;
+        cout << "\n\tRecord not deleted";
     }
 }
 
 
-int main(){
-    loadGlobalVariables();
-    string role; int exit=0;
-    int* x;
-    int terminate=0;
-    while(terminate==0){
-    role=getValidatedInput<string>("Welcome to ABC Car Rental Services\n Enter your Role: 'Customer' or 'Employee' or 'Manager':\n");
+void Car::setCarRentDate(int a, int b, int c, int d,int e){
+        Car car;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("car.txt");
+        while (!read.eof()) {
+            read >> car.id;
+            read.ignore();
+            getline(read, car.model);
+            read >> car.dueDateDay;
+            read >> car.dueDateMonth;
+            read >> car.dueDateYear;
+            // read >> customer.degree;
+            read >> car.currentCustomerId;
+            read >> car.condition;
+            read >> car.rent;
+            if (car.id != id) {
+                tempFile << "\n" << car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            }
+            else {
+                    tempFile << "\n"<< car.id;
+                tempFile << "\n" << car.model;
+                if(e==1){
+                    tempFile << "\n" << a;
+                tempFile << "\n" << b;
+                tempFile << "\n" << c;
+                tempFile << "\n" << d;
+                }
+                else{
+                     tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                }
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("car.txt");
+        rename("temp.txt", "car.txt");
+        cout << "\n\tData updated successfuly";
+     
+     
+}
+
+void updateCarData() {
+    int id;
+    try{
+        id = searchCarData();
+    } catch(const char* msg){
+                cerr<<msg<<endl;
+                return;
+    }
     
-    if(role!="Manager"&&role!="Customer"&&role!="Employee"){
-        cout<<"Invalid Role!"<<endl;
-        continue;
+    if(checkCarId(id)){cout << "\n\tYou want to update record (y/n) : ";
+    char choice;
+    int option;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
     }
-    x = login_signup(role);
-
-    if (x[0] == 1) {
-        run(role, x[1]);
-    } else {
-        std::cout << "Exiting login/signup.";
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        Car newData;
+        cout<<"\n\tWhat do you will like to update : ";
+        cout<<"\n\t1. Car ID";
+        cout<<"\n\t2. Model";
+        cout<<"\n\t3. Car condition";
+        cout<<"\n\t4. Car rent";
+        cout<<"\n\tEnter choice : ";
+        cin>>option;
+        while(std::cin.fail() || option<1 || option>4) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, choose one out of 4 choices";
+    //  cout<<"\n\tWhat do you will like to update : ";
+        cout<<"\n\tWhat do you will like to update : ";
+        cout<<"\n\t1. Car ID";
+        cout<<"\n\t2. Model";
+        cout<<"\n\t3. Car condition";
+        cout<<"\n\t4. Car rent";
+        cout<<"\n\tEnter choice : ";
+    std::cin >> option;
     }
-    terminate= getValidatedInput<int>("To exit , enter 1, else enter 0:");
-    }
-
-    delete[] x;
-    saveGlobalVariables();
     
+   
+//         if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+           if(option==1){
+            cout << "\n\tEnter new car ID : ";
+            cin >> newData.id;
+            while(std::cin.fail() || newData.id<1 || checkCarId(newData.id)) {
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+            if(checkCarId(newData.id)){std::cout<<"\n\tCar ID already exists \n\tEnter new car ID: ";
+            }
+            else{
+                std::cout << "\n\tInvaild ID.  Enter a (+) DIGITS : ";
+            }
+                std::cin >> newData.id;;
+        }
+        }
+
+         else if(option==2){
+            cout << "\n\tEnter new car model : ";
+        cin>>newData.model;
+        if(cin.fail()){
+            cin.ignore();
+            throw "\n\tInvalid input";
+}
+        }
+        
+        else if(option==3){
+            cout << "\n\tEnter new car condition : ";
+        cin >> newData.condition;
+         while(std::cin.fail() || newData.condition<0 || newData.condition>100) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild condition data\n\tPlease enter within range (0- 100) : ";
+        // cout<<"\n\t";
+    std::cin >> newData.condition;
+    }
+        }
+        
+        // cout << "\n\tEnter customer degree : ";
+        // cin >> newData.degree;
+        else if(option==4){
+            cout << "\n\tEnter new car rent : ";
+         cin >> newData.rent;
+         while(std::cin.fail() || newData.rent<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild rent, Please enter (+)Number : ";
+        // cout<<"\n\t";
+    std::cin >> newData.rent;
+    }
+        }
+        
+         else{
+        //     cout<<"\tInvalid input\n";
+        throw "\n\tInvalid Input";
+        //     return;
+         }
+        Car car;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("car.txt");
+        while (!read.eof()) {
+            read >> car.id;
+            read.ignore();
+            getline(read, car.model);
+            read >> car.dueDateDay;
+            read >> car.dueDateMonth;
+            read >> car.dueDateYear;
+            // read >> customer.degree;
+            read >> car.currentCustomerId;
+            read >> car.condition;
+            read >> car.rent;
+            if (car.id != id) {
+                tempFile << "\n" << car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            }
+            else {
+                
+                if(option==1){
+                    tempFile << "\n"<< newData.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            
+                }        
+                else if(option==2){
+                    tempFile << "\n"<< car.id;
+                tempFile << "\n" << newData.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+                }
+                // tempFile << "\n" << newData.degree;
+                else if(option==3){
+                    tempFile << "\n"<< car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << newData.condition;
+                tempFile << "\n" << car.rent;
+                }
+                else if(option==4){
+                    tempFile << "\n"<< car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << newData.rent;
+                }
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("car.txt");
+        rename("temp.txt", "car.txt");
+        cout << "\n\tData updated successfuly";
+    }
+    else  if (choice == 'n' || choice =='N') {
+        cout<<"\n\tNo change implemented";
+        
+    }
+    else{
+        throw "\n\tRecord not updated";
+    }
+    }
+}
+
+
+
+int checkUser(int id){
+     Customer customer;
+    ifstream read;
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read >> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars)
+;
+        
+        getline(read, customer.name);
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        // cout<<customer.id<<endl;
+        if (customer.id == id) {
+            // cout<<"\n\t"<<endl;
+            return 1;
+        }
+    }
+    read.close();
+     
+    Employee customer3;
+    ifstream read2;
+    read2.open("employee.txt");
+    while (!read2.eof()) {
+        read2 >> customer3.id;
+        read2 >> customer3.password;
+        read2.ignore();
+        getline(read2, customer3.rentedCars)
+;
+        
+        getline(read2, customer3.name);
+        read2 >> customer3.fineDue;
+        // read >> customer.degree;
+        read2 >> customer3.customer_record;
+        //cout<<customer3.id<<endl;
+        if (customer3.id == id) {
+            // cout<<"\n\tcheckusertest"<<endl;
+            return 1;
+        }
+    }
+    read2.close();
+    return 0;   
+}
+
+int validateCustomer(int id, int password){
+     Customer customer;
+    ifstream read;
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read >> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars)
+;
+        
+        getline(read, customer.name);
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        if ((customer.id == id) && (customer.password==password)) {
+            // cout<<"\n\t"<<endl;
+            return 1;
+        }
+    }
+    read.close();
+     
+    return 0;  
+}
+
+int validateEmployee(int id, int password){
+    Employee customer;
+    ifstream read;
+    read.open("employee.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read >> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars)
+;
+        
+        getline(read, customer.name);
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        if ((customer.id == id) && (customer.password==password)) {
+            // cout<<"\n\t"<<endl;
+            return 1;
+        }
+    }
+    read.close();
+}
+
+void Customer::printCustomer() {
+    cout << "\n\t---Customer Data---";
+    cout << "\n\tID : " << id;
+    cout<<"\n\tName : "<<name;
+    //<< rentedCars;
+    cout << "\n\tFine due : " << fineDue;
+    // cout << "\n\tDegree : " << s.degree;
+    cout << "\n\tCustomer Record : " << customer_record;
+    cout<<"\n\tCurrently rented cars : \n";
+        this->rentedCarData();
+}
+
+void Employee::printEmployee() {
+    cout << "\n\t---Employee Data---";
+    cout << "\n\tID : " << id;
+    cout<<"\n\tName : "<<name;
+    //<< rentedCars;
+    cout << "\n\tFine due : " << fineDue;
+    // cout << "\n\tDegree : " << s.degree;
+    cout << "\n\tCustomer Record : " << customer_record;
+    cout<<"\n\tCurrently rented cars : \n";
+        this->rentedCarData();
+}
+
+void Customer::updateFine(int newFine){
+    int option=2;
+     Customer newData;
+
+        
+           if(option==2){
+            
+        newData.fineDue=fineDue+newFine;
+        }
+
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("customer.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("customer.txt");
+        rename("temp.txt", "customer.txt");
+        cout << "\n\tData updated successfuly";
+}
+
+void Employee::updateFine(int newFine){
+    int option=2;
+     Employee newData;
+
+        
+           if(option==2){
+            
+        newData.fineDue=fineDue+newFine;
+        }
+
+        Employee customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("employee.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("employee.txt");
+        rename("temp.txt", "employee.txt");
+        cout << "\n\tData updated successfuly";
+}
+
+// void Customer::print(){
+//     cout << "\n\t---Customer Data---";
+//     cout << "\n\tID : " << id;
+//     cout<<"\n\tName : "<<name;
+//     //<< rentedCars;
+//     cout << "\n\tFine due : " << fineDue;
+//     // cout << "\n\tDegree : " << s.degree;
+//     cout << "\n\tCustomer Record : " << customer_record;
+//     cout<<"\n\tCurrently rented cars : \n";
+//         this->rentedCarData();
+// }
+
+void Customer::updateCustomerRecord(){
+    
+    int option=2;
+     Customer newData;
+
+        
+           if(option==2){
+            if(customer_record>=10){
+                newData.customer_record=customer_record-10;
+            }
+            else{
+                newData.customer_record=0;
+            }
+        }
+
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("customer.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< customer.fineDue;
+                    tempFile << "\n" << newData.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("customer.txt");
+        rename("temp.txt", "customer.txt");
+}
+
+void Employee::updateEmployeeRecord(){
+    
+    int option=2;
+     Employee newData;
+
+        
+           if(option==2){
+            if(customer_record>=10){
+                newData.customer_record=customer_record-10;
+            }
+            else{
+                newData.customer_record=0;
+            }
+        }
+
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("employee.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< customer.fineDue;
+                    tempFile << "\n" << newData.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("employee.txt");
+        rename("temp.txt", "employee.txt");
+}
+
+
+void Customer::readRentableCarData(){
+    Car car;
+    int numberofCars=0;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        if((customer_record>=car.condition) && (car.currentCustomerId==-1)){printCar(car);
+        numberofCars++;}
+        
+    }
+    read.close();
+    cout<<"\n\tTotal number of rentable cars : "<<numberofCars;
+}
+
+
+void Employee::readRentableCarData(){
+    Car car;
+    int numberofCars=0;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+        read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        int employeeRent= (((85*car.rent)/100));
+        car.rent=employeeRent;
+        if((customer_record>=car.condition) && (car.currentCustomerId==-1)){printCar(car);
+        numberofCars++;}
+        
+    }
+    read.close();
+    cout<<"\n\tTotal number of rentable cars : "<<numberofCars;
+}
+
+
+int dateValidator(int a , int b, int c){
+    if((a>=1 && a<=31) && (b==1 || b==3 || b==5 || b==7 || b==8 || b==10 || b==12))
+                return 1;
+            else if((a>=1 && a<=30) && (b==4 || b==6 || b==9 || b==11))
+                return 1;
+            else if((a>=1 && a<=28) && (b==2))
+                return 1;
+            else if(a==29 && b==2 && (c%400==0 ||(c%4==0 && c%100!=0)))
+                return 1;
+            else{
+                return 0;
+			}
+}
+
+
+void Customer::rentaCar(){
+    int carId;
+    cout << "\n\tEnter car id want to rent : ";
+    cin >> carId;
+    while(std::cin.fail() || carId<1) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        std::cout << "\n\tInvaild ID.  Enter a (+) DIGITS : ";
+    std::cin >> carId;;
+}
+if(!checkCarId(carId)){std::cout<<"\n\tNo such car ID exists";
+return ;
+}
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+
+        if (car.id == carId) {
+            read.close();
+            if(customer_record<car.condition){
+                cout<<"\n\tLow customer record"<<"\n\t"<<"Need to increase customer record by : "<<car.condition-customer_record<<"\n\tYou cannot rent this car!";
+                return;
+            }
+            else if(car.currentCustomerId>-1){
+                cout<<"\n\tAlready rented";
+                return;
+            }
+            else{
+                cout<<"\n\tYou can rent "<<car.model;
+            cout<<"\n\tCar rent is : "<<car.rent;
+            cout<<"\n\tNOTE : Fine of Rs.5 per day if car not returned within 30 days";
+            cout<<"\n\tRent car"<<car.model<< "\t(y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        cout<<"\n\tEnter current date\n\tRange (01/01/1990) to (31/12/9999)";
+        int a,b,c;
+        cout<<"\n\tEnter Year : ";
+        cin>>c;
+        while(std::cin.fail() || c<1990 || c>9999) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid year";
+    cout<<"\n\tEnter Year : ";
+    std::cin >> c;
+}
+
+cout<<"\n\tEnter Month : ";
+        cin>>b;
+        while(std::cin.fail() || b<1 || b>12) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid month";
+    cout<<"\n\tEnter Month : ";
+    std::cin >> b;
+}
+
+cout<<"\n\tEnter Date : ";
+        cin>>a;
+        while(std::cin.fail() || (!dateValidator(a,b,c))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid date";
+    cout<<"\n\tEnter Date : ";
+    std::cin >> a;
+}
+
+car.setCarRentDate(a,b,c,id,1);
+cout<<"\n\tYou have rented "<<car.model;
+                printCar(car);
+                return;
+
+    }else{
+        throw "\n\tCar not rented";
+    }
+                
+            }
+        }
+    }
+    
+       throw "\n\tNo such car exists!";
+}
+
+void Employee::rentaCar(){
+    int carId;
+    cout << "\n\tEnter car id want to rent : ";
+    cin >> carId;
+    while(std::cin.fail() || carId<1) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+        std::cout << "\n\tInvaild ID.  Enter a (+) DIGITS : ";
+    std::cin >> carId;;
+}
+if(!checkCarId(carId)){std::cout<<"\n\tNo such car ID exists";
+return ;
+}
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+
+        if (car.id == carId) {
+            read.close();
+            if(customer_record<car.condition){
+                cout<<"\n\tLow customer record"<<"\n\t"<<"Need to increase customer record by : "<<car.condition-customer_record<<"\n\tYou cannot rent this car!";
+                return;
+            }
+            else if(car.currentCustomerId>-1){
+                cout<<"\n\tAlready rented";
+                return;
+            }
+            else{
+                cout<<"\n\tYou can rent "<<car.model;
+                int employeeRent= ((85*(car.rent))/100);
+            cout<<"\n\tCar rent is : "<<employeeRent;
+            cout<<"\n\tNOTE : Fine of Rs.5 per day if car not returned within 30 days";
+            cout<<"\n\tRent car"<<car.model<< "\t(y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        cout<<"\n\tEnter current date\n\tRange (01/01/1990) to (31/12/9999)";
+        int a,b,c;
+        cout<<"\n\tEnter Year : ";
+        cin>>c;
+        while(std::cin.fail() || c<1990 || c>9999) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid year";
+    cout<<"\n\tEnter Year : ";
+    std::cin >> c;
+}
+
+cout<<"\n\tEnter Month : ";
+        cin>>b;
+        while(std::cin.fail() || b<1 || b>12) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid month";
+    cout<<"\n\tEnter Month : ";
+    std::cin >> b;
+}
+
+cout<<"\n\tEnter Date : ";
+        cin>>a;
+        while(std::cin.fail() || (!dateValidator(a,b,c))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid date";
+    cout<<"\n\tEnter Date : ";
+    std::cin >> a;
+}
+
+car.setCarRentDate(a,b,c,id,1);
+cout<<"\n\tYou have rented "<<car.model;
+                printCar(car);
+                return;
+
+    }else{
+        throw "\n\tCar not rented";
+    }
+                
+            }
+        }
+    }
+    
+       throw "\n\tNo such car exists!";
+}
+
+
+
+int dayDifference( int d1,int m1, int y1, int d2, int m2,int y2){
+
+int x1,x2;
+
+m1 = (m1 + 9) % 12;
+y1 = y1 - m1 / 10;
+x1= 365*y1 + y1/4 - y1/100 + y1/400 + (m1*306 + 5)/10 + ( d1 - 1 );
+
+m2 = (m2 + 9) % 12;
+y2 = y2 - m2 / 10;
+x2= 365*y2 + y2/4 - y2/100 + y2/400 + (m2*306 + 5)/10 + ( d2 - 1 );
+
+if((x2-x1)>=0){
+    return x2 - x1;
+}
+else{
+    return -1;
+}
+
+}
+
+void Customer::returnRequest(){
+    cout<<"Enter ID of car to return : ";
+    int returnid;
+    cin>>returnid;
+     while(std::cin.fail() || returnid<1 || !checkCarId(returnid)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tID does not exists";
+    cout<<"\n\tEnter valid car ID : ";
+    std::cin >> returnid;
+}
+if(checkCarId2(returnid,id))
+{
+        Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+
+        if (car.id == returnid) {
+            //cout<<car.id<<" "<<returnid<<" "<<car.currentCustomerId;
+            read.close();
+            if(car.currentCustomerId==-1){
+                cout<<"\n\tNotrented";
+                return;
+            }
+            else if(car.currentCustomerId==id){
+            cout<<"\n\tReturn car "<<car.model<< "\t(y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        cout<<"\n\tEnter current date\n\tRange (01/01/1990) to (31/12/9999)";
+        int a,b,c;
+        cout<<"\n\tEnter Year : ";
+        cin>>c;
+        while(std::cin.fail() || c<1990 || c>9999) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid year";
+    cout<<"\n\tEnter Year : ";
+    std::cin >> c;
+}
+
+cout<<"\n\tEnter Month : ";
+        cin>>b;
+        while(std::cin.fail() || b<1 || b>12) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid month";
+    cout<<"\n\tEnter Month : ";
+    std::cin >> b;
+}
+
+cout<<"\n\tEnter Date : ";
+        cin>>a;
+        while(std::cin.fail() || (!dateValidator(a,b,c))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid date";
+    cout<<"\n\tEnter Date : ";
+    std::cin >> a;
+}
+if(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)+1){
+    cout<<"\n\tIs car more damaged (y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+    if(choice=='y' || choice=='Y'){
+        this->updateCustomerRecord();
+    }
+    car.setCarRentDate(a,b,c,id,0);
+    if(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)>30){
+         cout<<"\n\tFine : "<<(5*(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)-30));
+    this->updateFine(5*(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)-30));
+    this->updateCustomerRecord();
+    }
+    return;
+}
+else{
+    cout<<"\n\tInvalid date not possible";
+    return;
+}
+
+    }else{
+        throw "\n\tCar not returned";
+    }
+                
+            }
+        }
+    }
+    
+       throw "\n\tNo such car exists!";
+}
+
+else{
+    throw"\n\tYou have not rented this car";
+}
+
+}
+
+void Employee::returnRequest(){
+    cout<<"Enter ID of car to return : ";
+    int returnid;
+    cin>>returnid;
+     while(std::cin.fail() || returnid<1 || !checkCarId(returnid)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tID does not exists";
+    cout<<"\n\tEnter valid car ID : ";
+    std::cin >> returnid;
+}
+if(checkCarId2(returnid,id))
+{
+        Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+
+        if (car.id == returnid) {
+            //cout<<car.id<<" "<<returnid<<" "<<car.currentCustomerId;
+            read.close();
+            if(car.currentCustomerId==-1){
+                cout<<"\n\tNotrented";
+                return;
+            }
+            else if(car.currentCustomerId==id){
+            cout<<"\n\tReturn car "<<car.model<< "\t(y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        cout<<"\n\tEnter current date\n\tRange (01/01/1990) to (31/12/9999)";
+        int a,b,c;
+        cout<<"\n\tEnter Year : ";
+        cin>>c;
+        while(std::cin.fail() || c<1990 || c>9999) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid year";
+    cout<<"\n\tEnter Year : ";
+    std::cin >> c;
+}
+
+cout<<"\n\tEnter Month : ";
+        cin>>b;
+        while(std::cin.fail() || b<1 || b>12) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid month";
+    cout<<"\n\tEnter Month : ";
+    std::cin >> b;
+}
+
+cout<<"\n\tEnter Date : ";
+        cin>>a;
+        while(std::cin.fail() || (!dateValidator(a,b,c))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    cout<<"\n\tInvalid date";
+    cout<<"\n\tEnter Date : ";
+    std::cin >> a;
+}
+if(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)+1){
+    cout<<"\n\tIs car more damaged (y/n)";
+            cout<<"\n\tEnter choice : ";
+            char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+    if(choice=='y' || choice=='Y'){
+        this->updateEmployeeRecord();
+    }
+    car.setCarRentDate(a,b,c,id,0);
+    if(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)>30){
+        cout<<"\n\tFine : "<<(5*(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)-30));
+    this->updateFine(5*(dayDifference(car.dueDateDay,car.dueDateMonth,car.dueDateYear,a,b,c)-30));
+    this->updateEmployeeRecord();
+    }
+    return;
+}
+else{
+    cout<<"\n\tInvalid date not possible";
+    return;
+}
+
+    }else{
+        throw "\n\tCar not returned";
+    }
+                
+            }
+        }
+    }
+    
+       throw "\n\tNo such car exists!";
+}
+
+else{
+    throw"\n\tYou have not rented this car";
+}
+
+}
+
+
+
+void Customer::rentedCarData(){
+    int numberofCars=0;
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+
+        // read >> student.id;
+        // read.ignore();
+        // getline(read, student.name);
+        // read >> student.age;
+        // read >> student.degree;
+        // read >> student.semesterNo;
+        if (car.currentCustomerId == id) {
+            numberofCars++;
+            printCar(car);
+            // return id;
+        }
+    }
+    cout<<"\n\tTotal number of rented cars by "<<name<<" : "<<numberofCars<<endl;
+    //    throw "No such car exists!";
+}
+
+void Employee::rentedCarData(){
+    int numberofCars=0;
+    Car car;
+    ifstream read;
+    read.open("car.txt");
+    while (!read.eof()) {
+
+         read >> car.id;
+        read.ignore();
+        getline(read, car.model);
+        read >> car.dueDateDay;
+        read >> car.dueDateMonth;
+        read >> car.dueDateYear;
+        read >> car.currentCustomerId;
+        read >> car.condition;
+        read >> car.rent;
+        int employeeRent= (((85*car.rent)/100));
+        car.rent=employeeRent;
+
+        // read >> student.id;
+        // read.ignore();
+        // getline(read, student.name);
+        // read >> student.age;
+        // read >> student.degree;
+        // read >> student.semesterNo;
+        if (car.currentCustomerId == id) {
+            numberofCars++;
+            printCar(car);
+            // return id;
+        }
+    }
+    cout<<"\n\tTotal number of rented cars by "<<name<<" : "<<numberofCars<<endl;
+    //    throw "No such car exists!";
+}
+
+void sumOfRecordsCustomer(int a[2]){
+     Customer customer;
+    ifstream read;
+    a[0]=0;
+    a[1]=0;
+    //a[0] number of customers
+    //a[1] sum of records
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read >> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars);
+        getline(read, customer.name);
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+       a[1]= a[1]+customer.customer_record;
+       a[0]++;
+    }
+    
+    // cout<<a[0]<<" "<<a[1]<<endl;
+    read.close();
+    return;   
+}
+
+void sumOfRecordsEmployee(int a[2]){
+     Employee customer;
+    ifstream read;
+    a[0]=0;
+    a[1]=0;
+    //a[0] number of customers
+    //a[1] sum of records
+    read.open("employee.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read >> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars);
+        getline(read, customer.name);
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+       a[1]= a[1]+customer.customer_record;
+       a[0]++;
+    }
+    
+    // cout<<a[0]<<" "<<a[1]<<endl;
+    read.close();
+    return;   
+}
+
+
+
+void addCustomer() {
+    Customer customer;
+    int userInput;
+    int sumOfRecord[2];
+   
+         cout << "\n\tEnter customer ID : ";
+         cin>>customer.id;;
+         
+while(std::cin.fail() || customer.id<1 || checkUser(customer.id)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(checkUser(customer.id)){std::cout<<"\n\tUser ID already exists \n\tEnter new ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> customer.id;;
+}
+std::cout << "\n\tID = " << customer.id << std::endl;   
+    // cout << "\n\tEnter customer ID : ";
+    // cin >> customer.id;
+    cout << "\n\tEnter customer Password : ";
+         cin>>customer.password;;
+         
+while(std::cin.fail() || customer.password<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> customer.password;;
+}
+    sumOfRecordsCustomer(sumOfRecord);
+    int avg;
+    if(sumOfRecord[1]/sumOfRecord[0]>1000000000){
+        cout<<"\n\tNo customer data, default customer record: 100";
+        avg =100;}
+    else{
+        avg = sumOfRecord[1]/sumOfRecord[0];
+        
+    }
+    cout << "\n\tPress Enter to continue : ";
+    cin.get();
+    getline(cin, customer.rentedCars); //Nouman Habib
+    if(cin.fail()){
+            cin.ignore();
+            throw "\n\tInvalid input";
+}
+
+     cout << "\n\tEnter customer Name : ";
+    
+    getline(cin, customer.name); //Nouman Habib
+    while(std::cin.fail() ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry.  Enter customer name : ";
+    std::cin >> customer.name;
+}
+
+    cout << "\n\tEnter customer fineDue : ";
+    cin >> customer.fineDue;
+    while(std::cin.fail() || customer.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> customer.fineDue;
+    }
+    // cout << "\n\tEnter customer degree : ";
+    // cin >> customer.degree;
+    // cout << "\n\tEnter customer record : ";
+    customer.customer_record = avg;
+    // ID++;
+
+    ofstream write;
+    write.open("customer.txt", ios::app);
+    write << "\n" << customer.id;
+    write << "\n" << customer.password;
+    write << "\n" << customer.rentedCars ;
+    write<< "\n" << customer.name;
+    write << "\n" << customer.fineDue ;
+
+    // write << "\n" << customer.degree ;
+    write << "\n" << customer.customer_record;
+    write.close();
+    // write.open("id.txt");
+    // write << ID;
+    // write.close();
+    
+    cout << "\n\tData save to file";
+}
+
+void addEmployee() {
+    Employee customer;
+    int userInput;
+    int sumOfRecord[2];
+   
+         cout << "\n\tEnter employee ID : ";
+         cin>>customer.id;;
+         
+while(std::cin.fail() || customer.id<1 || checkUser(customer.id)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(checkUser(customer.id)){std::cout<<"\n\tUser ID already exists \n\tEnter new ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> customer.id;;
+}
+std::cout << "\n\tID = " << customer.id << std::endl;   
+    // cout << "\n\tEnter customer ID : ";
+    // cin >> customer.id;
+    cout << "\n\tEnter employee Password : ";
+         cin>>customer.password;;
+         
+while(std::cin.fail() || customer.password<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> customer.password;;
+}
+    sumOfRecordsEmployee(sumOfRecord);
+    int avg;
+    if(sumOfRecord[1]/sumOfRecord[0]>1000000000){
+        cout<<"\n\tNo employee data, default employee record: 100";
+        avg =100;}
+    else{
+        avg = sumOfRecord[1]/sumOfRecord[0];
+        
+    }
+    cout << "\n\tPress Enter to continue : ";
+    cin.get();
+    getline(cin, customer.rentedCars); //Nouman Habib
+    if(cin.fail()){
+            cin.ignore();
+            throw "\n\tInvalid input";
+}
+
+     cout << "\n\tEnter employee Name : ";
+    
+    getline(cin, customer.name); //Nouman Habib
+    while(std::cin.fail() ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry.  Enter employee name : ";
+    std::cin >> customer.name;
+}
+
+    cout << "\n\tEnter employee fineDue : ";
+    cin >> customer.fineDue;
+    while(std::cin.fail() || customer.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> customer.fineDue;
+    }
+    // cout << "\n\tEnter customer degree : ";
+    // cin >> customer.degree;
+    // cout << "\n\tEnter customer record : ";
+    customer.customer_record = avg;
+    // ID++;
+
+    ofstream write;
+    write.open("employee.txt", ios::app);
+    write << "\n" << customer.id;
+    write << "\n" << customer.password;
+    write << "\n" << customer.rentedCars ;
+    write<< "\n" << customer.name;
+    write << "\n" << customer.fineDue ;
+
+    // write << "\n" << customer.degree ;
+    write << "\n" << customer.customer_record;
+    write.close();
+    // write.open("id.txt");
+    // write << ID;
+    // write.close();
+    
+    cout << "\n\tData save to file";
+}
+
+
+
+
+
+void readDataCustomer() { 
+    
+    // if(dataExistChecker()==0){
+    //     throw "\n\tAdd customers";
+    // }
+    
+    int customerNumber=0;
+    Customer customer;
+    ifstream read;
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read>> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars);
+        getline(read, customer.name);
+
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        customer.printCustomer();
+        customerNumber++;
+
+    }
+    read.close();    
+    cout<<"\n\tTotal number of customer(s) : "<<customerNumber<<endl;     
+}
+
+void readDataEmployee() { 
+    
+    // if(dataExistChecker()==0){
+    //     throw "\n\tAdd customers";
+    // }
+    
+    int customerNumber=0;
+    Employee customer;
+    ifstream read;
+    read.open("employee.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read>> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars);
+        getline(read, customer.name);
+
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        customer.printEmployee();
+        customerNumber++;
+
+    }
+    read.close();    
+    cout<<"\n\tTotal number of employee(s) : "<<customerNumber<<endl;     
+}
+
+
+void Customer::setCustomer(int i){
+    id = i;
+
+    std::cout << "\n\tID = " <<id << std::endl; 
+    Customer customer2;
+    ifstream read;
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer2.id;
+        read>> customer2.password;
+        read.ignore();
+        getline(read, customer2.rentedCars)
+;
+        getline(read, customer2.name);
+
+        read >> customer2.fineDue;
+        // read >> customer.degree;
+        read >> customer2.customer_record;
+        if (customer2.id == id) {
+            id = customer2.id;
+            password= customer2.password;
+            rentedCars= customer2.rentedCars;
+            name=customer2.name;
+            fineDue=customer2.fineDue;
+            customer_record=customer2.customer_record;
+          
+        }
+    }
+    read.close();
+
+}
+
+
+void Employee::setEmployee(int i){
+    id = i;
+
+    std::cout << "\n\tID = " <<id << std::endl; 
+    Employee customer2;
+    ifstream read;
+    read.open("employee.txt");
+    while (!read.eof()) {
+        read >> customer2.id;
+        read>> customer2.password;
+        read.ignore();
+        getline(read, customer2.rentedCars)
+;
+        getline(read, customer2.name);
+
+        read >> customer2.fineDue;
+        // read >> customer.degree;
+        read >> customer2.customer_record;
+        if (customer2.id == id) {
+            id = customer2.id;
+            password= customer2.password;
+            rentedCars= customer2.rentedCars;
+            name=customer2.name;
+            fineDue=customer2.fineDue;
+            customer_record=customer2.customer_record;
+          
+        }
+    }
+    read.close();
+
+}
+
+
+int searchDataCustomer() {
+    
+    // if(dataExistChecker()==0){
+    //     throw "\n\tAdd customers";
+    // }
+    int id;
+    cout << "\n\tEnter customer id : ";
+    cin >> id;
+    while(std::cin.fail() || id<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(std::cin.fail() ){std::cout << "\n\tInvaild entry,  Enter a (+) DIGITS  : ";
+    std::cin >> id;
+    }
+    else if( id<1){std::cout << "\n\tInvaild entry,  Enter a (+) DIGITS  : ";
+    std::cin >> id;
+    }
+
+    else if(!checkUser(id)){
+        throw "\n\tNo such user exists!";
+        
+    }
+   
+    
+}
+
+
+std::cout << "\n\tID = " <<id << std::endl; 
+    Customer customer;
+    ifstream read;
+    read.open("customer.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read>> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars)
+;
+        getline(read, customer.name);
+
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        if (customer.id == id) {
+            customer.printCustomer();
+            return id;
+        }
+    }
+    read.close();
+    throw "\n\tNo such customer found";
+    
+}
+
+
+int searchDataEmployee() {
+    
+    // if(dataExistChecker()==0){
+    //     throw "\n\tAdd customers";
+    // }
+    int id;
+    cout << "\n\tEnter employee id : ";
+    cin >> id;
+    while(std::cin.fail() || id<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(std::cin.fail() ){std::cout << "\n\tInvaild entry,  Enter a (+) DIGITS  : ";
+    std::cin >> id;
+    }
+    else if( id<1){std::cout << "\n\tInvaild entry,  Enter a (+) DIGITS  : ";
+    std::cin >> id;
+    }
+
+    else if(!checkUser(id)){
+        throw "\n\tNo such user exists!";
+        
+    }
+   
+    
+}
+
+
+std::cout << "\n\tID = " <<id << std::endl; 
+    Employee customer;
+    ifstream read;
+    read.open("employee.txt");
+    while (!read.eof()) {
+        read >> customer.id;
+        read>> customer.password;
+        read.ignore();
+        getline(read, customer.rentedCars)
+;
+        getline(read, customer.name);
+
+        read >> customer.fineDue;
+        // read >> customer.degree;
+        read >> customer.customer_record;
+        if (customer.id == id) {
+            customer.printEmployee();
+            return id;
+        }
+    }
+    read.close();
+    throw "\n\tNo such employee found";
+    
+}
+
+
+void updatedCarUser(int id){
+    Car car;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("car.txt");
+        while (!read.eof()) {
+            read >> car.id;
+            read.ignore();
+            getline(read, car.model);
+            read >> car.dueDateDay;
+            read >> car.dueDateMonth;
+            read >> car.dueDateYear;
+            // read >> customer.degree;
+            read >> car.currentCustomerId;
+            read >> car.condition;
+            read >> car.rent;
+            if (car.currentCustomerId != id) {
+                tempFile << "\n" << car.id;
+                tempFile << "\n" << car.model;
+                tempFile << "\n" << car.dueDateDay;
+                tempFile << "\n" << car.dueDateMonth;
+                tempFile << "\n" << car.dueDateYear;
+                tempFile << "\n" << car.currentCustomerId;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            }
+            else {
+                    tempFile << "\n"<< car.id;
+                tempFile << "\n" << car.model;
+                     tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                tempFile << "\n" << -1;
+                tempFile << "\n" << car.condition;
+                tempFile << "\n" << car.rent;
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("car.txt");
+        rename("temp.txt", "car.txt");
+        cout << "\n\tData updated successfuly";
+     
+}
+
+void deleteCustomerData() {
+    int id;
+    
+    try{
+        id = searchDataCustomer();
+        
+    } catch(const char* msg){
+        throw "\n\tNo such customer found";
+        cerr<<msg<<endl;
+        
+    }
+    cout << "\n\tDelete record (y/n) : ";
+    char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+    if (choice == 'y') {
+        updatedCarUser(id);
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("customer.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read>> customer.password;
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+                tempFile << "\n" << customer.name;
+        
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("customer.txt");
+        rename("temp.txt", "customer.txt");
+        cout << "\n\tData deleted successfuly";
+    }
+    else {
+        cout << "\n\tRecord not deleted";
+    }
+}
+
+
+void deleteEmployeeData() {
+    int id;
+    
+    try{
+        id = searchDataEmployee();
+        
+    } catch(const char* msg){
+        throw "\n\tNo such employee found";
+        cerr<<msg<<endl;
+        
+    }
+    cout << "\n\tDelete record (y/n) : ";
+    char choice;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+    if (choice == 'y') {
+        updatedCarUser(id);
+        Employee customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("employee.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read>> customer.password;
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+                tempFile << "\n" << customer.name;
+        
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("employee.txt");
+        rename("temp.txt", "employee.txt");
+        cout << "\n\tData deleted successfuly";
+    }
+    else {
+        cout << "\n\tRecord not deleted";
+    }
+}
+
+void updateDataCustomer() {
+    int id;
+    try{
+        id = searchDataCustomer();
+    } catch(const char* msg){
+                cerr<<msg<<endl;
+                return;
+    }
+    
+    if(checkUser(id)){cout << "\n\tYou want to update record (y/n) : ";
+    char choice;
+    int option;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        Customer newData;
+        cout<<"\n\tWhat do you will like to update : ";
+        // cout<<"\n\t1. Rented Cars";
+        cout<<"\n\t1. Fine Due";
+        cout<<"\n\t2. Customer record";
+        cout<<"\n\t3. Customer ID";
+        cout<<"\n\t4. Customer Password";
+        cout<<"\n\t5. Customer Name";
+        cout<<"\n\t";
+        cin>>option;
+        while(std::cin.fail() || option<1 || option>5) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry,";
+     cout<<"\n\tWhat do you will like to update : ";
+        // cout<<"\n\t1. Rented Cars";
+        cout<<"\n\t1. Fine Due";
+        cout<<"\n\t2. Customer record";
+        cout<<"\n\t3. Customer ID";
+        cout<<"\n\t4. Customer Password";
+        cout<<"\n\t5. Customer Name";
+        cout<<"\n\t";
+    std::cin >> option;
+    }
+        
+        if(option==1){
+            cout << "\n\tEnter new customer fineDue : ";
+        cin >> newData.fineDue;
+         while(std::cin.fail() || newData.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> newData.fineDue;
+    }
+        }
+        
+        // cout << "\n\tEnter customer degree : ";
+        // cin >> newData.degree;
+        else if(option==2){
+            cout << "\n\tEnter new Customer Record (0 - 100) : ";
+         cin >> newData.customer_record;
+         while(std::cin.fail() || newData.customer_record<0 || newData.customer_record>100) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number (0 - 100) : ";
+        cout<<"\n\t";
+    std::cin >> newData.customer_record;
+    }
+        }
+        else if(option==3){
+            cout << "\n\tEnter new customer ID : ";
+        cin >> newData.id;
+        while(std::cin.fail() || newData.id<1 || checkUser(newData.id)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(checkUser(newData.id)){std::cout<<"\n\tUser ID already exists \n\tEnter new ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> newData.id;;
+}
+        }
+        else if(option==4){
+            cout << "\n\tEnter new customer Password : ";
+        cin >> newData.password;
+        while(std::cin.fail() || newData.password<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> newData.password;
+}
+        }
+        else if(option==5){
+            cout << "\n\tEnter new customer name : ";
+        cin.get();
+
+        getline(cin, newData.name);
+        if(cin.fail()){
+            cin.ignore();
+            throw "\n\tInvalid input";
+}
+        }
+         else{
+        //     cout<<"\tInvalid input\n";
+        throw "\n\tInvalid Input";
+        //     return;
+         }
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("customer.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+                        read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;        
+                tempFile << "\n" << customer.name;        
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                   
+                if(option==1){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                else if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< newData.customer_record;
+                }
+                else if(option==3){
+                    tempFile << "\n"<< newData.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+                else if(option==4){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << newData.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+                else if(option==5){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << newData.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("customer.txt");
+        rename("temp.txt", "customer.txt");
+        cout << "\n\tData updated successfuly";
+    }
+    else  if (choice == 'n' || choice =='N') {
+        cout<<"\n\tNo change implemented";
+        
+    }
+    else{
+        throw "\n\tRecord not updated";
+    }
+    }
+}
+
+void updateDataEmployee() {
+    int id;
+    try{
+        id = searchDataEmployee();
+    } catch(const char* msg){
+                cerr<<msg<<endl;
+                return;
+    }
+    // cout<<"test1";
+    if(checkUser(id)){cout << "\n\tYou want to update record (y/n) : ";
+    char choice;
+    int option;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+//      if(cin.fail()){
+//             cin.ignore();
+//             throw "\n\tInvalid input";
+// }
+    if (choice == 'y' || choice =='Y') {
+        Employee newData;
+        cout<<"\n\tWhat do you will like to update : ";
+        // cout<<"\n\t1. Rented Cars";
+        cout<<"\n\t1. Fine Due";
+        cout<<"\n\t2. Employee record";
+        cout<<"\n\t3. Employee ID";
+        cout<<"\n\t4. Employee Password";
+        cout<<"\n\t5. Employee Name";
+        cout<<"\n\tEnter choice : ";
+        // cout<<"\n\t";
+        cin>>option;
+        while(std::cin.fail() || option<1 || option>5) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry,";
+     cout<<"\n\tWhat do you will like to update : ";
+        // cout<<"\n\t1. Rented Cars";
+        cout<<"\n\t1. Fine Due";
+        cout<<"\n\t2. Employee record";
+        cout<<"\n\t3. Employee ID";
+        cout<<"\n\t4. Employee Password";
+        cout<<"\n\t5. Employee Name";
+        //cout<<"\n\t";
+        cout<<"\n\tEnter choice : ";
+    std::cin >> option;
+    }
+        
+        if(option==1){
+            cout << "\n\tEnter new employee fineDue : ";
+        cin >> newData.fineDue;
+         while(std::cin.fail() || newData.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> newData.fineDue;
+    }
+        }
+        
+        // cout << "\n\tEnter customer degree : ";
+        // cin >> newData.degree;
+        else if(option==2){
+            cout << "\n\tEnter new Employee Record (0 - 100) : ";
+         cin >> newData.customer_record;
+         while(std::cin.fail() || newData.customer_record<0 || newData.customer_record>100) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number (0 - 100) : ";
+        cout<<"\n\t";
+    std::cin >> newData.customer_record;
+    }
+        }
+        else if(option==3){
+            cout << "\n\tEnter new employee ID : ";
+        cin >> newData.id;
+        while(std::cin.fail() || newData.id<1 || checkUser(newData.id)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(checkUser(newData.id)){std::cout<<"\n\tUser ID already exists \n\tEnter new ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> newData.id;;
+}
+        }
+        else if(option==4){
+            cout << "\n\tEnter new employee Password : ";
+        cin >> newData.password;
+        while(std::cin.fail() || newData.password<1 ) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> newData.password;
+}
+        }
+        else if(option==5){
+            cout << "\n\tEnter new employee name : ";
+        cin.get();
+
+        getline(cin, newData.name);
+        if(cin.fail()){
+            cin.ignore();
+            throw "\n\tInvalid input";
+}
+        }
+         else{
+        //     cout<<"\tInvalid input\n";
+        throw "\n\tInvalid Input";
+        //     return;
+         }
+        Employee customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("employee.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+                        read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;        
+                tempFile << "\n" << customer.name;        
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                   
+                if(option==1){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                else if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< newData.customer_record;
+                }
+                else if(option==3){
+                    tempFile << "\n"<< newData.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+                else if(option==4){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << newData.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << customer.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+                else if(option==5){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                     tempFile << "\n" << newData.name;  
+                    tempFile << "\n" << customer.fineDue;
+                    tempFile << "\n"<< customer.customer_record;
+                }
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("employee.txt");
+        rename("temp.txt", "employee.txt");
+        cout << "\n\tData updated successfuly";
+    }
+    else  if (choice == 'n' || choice =='N') {
+        cout<<"\n\tNo change implemented";
+        
+    }
+    else{
+        throw "\n\tRecord not updated";
+    }
+    }
+}
+
+
+
+void clearDueCustomer(){
+    
+    int id;
+    try{
+        id = searchDataCustomer();
+    } catch(const char* msg){
+                cerr<<msg<<endl;
+                return;
+    }
+    
+    if(checkUser(id)){cout << "\n\tYou want to clear due (y/n) : ";
+    char choice;
+    int option = 2;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+
+    if (choice == 'y' || choice =='Y') {
+        Customer newData;
+
+        
+           if(option==2){
+          
+        newData.fineDue=0;
+         while(std::cin.fail() || newData.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> newData.fineDue;
+    }
+        }
+
+        Customer customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("customer.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("customer.txt");
+        rename("temp.txt", "customer.txt");
+        cout << "\n\tData updated successfuly";
+    }
+    else {
+        cout<<"\n\tNo change implemented";
+        throw "\n\tRecord not updated";
+    }
+    }
+}
+
+void clearDueEmployee(){
+    
+    int id;
+    try{
+        id = searchDataEmployee();
+    } catch(const char* msg){
+                cerr<<msg<<endl;
+                return;
+    }
+    
+    if(checkUser(id)){cout << "\n\tYou want to clear due (y/n) : ";
+    char choice;
+    int option = 2;
+    cin >> choice;
+    while(std::cin.fail() || (choice!='Y' && choice!='y'&& choice!='n' && choice!='N')) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input, Please enter (y/n) : ";
+        cout<<"\n\t";
+    std::cin >> choice;
+    }
+
+    if (choice == 'y' || choice =='Y') {
+        Customer newData;
+
+        
+           if(option==2){
+          
+        newData.fineDue=0;
+         while(std::cin.fail() || newData.fineDue<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild entry, Please enter (+)Number";
+        cout<<"\n\t";
+    std::cin >> newData.fineDue;
+    }
+        }
+
+        Employee customer;
+        ofstream tempFile;
+        tempFile.open("temp.txt");
+        ifstream read;
+        read.open("employee.txt");
+        while (!read.eof()) {
+            read >> customer.id;
+            read >> customer.password;
+
+            read.ignore();
+            getline(read, customer.rentedCars);
+            getline(read, customer.name);
+
+            read >> customer.fineDue;
+            // read >> customer.degree;
+            read >> customer.customer_record;
+            if (customer.id != id) {
+                tempFile << "\n" << customer.id;
+                tempFile << "\n" << customer.password;
+                tempFile << "\n" << customer.rentedCars;
+        tempFile << "\n" << customer.name;
+                tempFile << "\n" << customer.fineDue;
+                // tempFile << "\n" << customer.degree;
+                tempFile << "\n" << customer.customer_record;
+            }
+            else {
+                if(option==2){
+                    tempFile << "\n"<< customer.id;
+                    tempFile << "\n" << customer.password;
+                    tempFile << "\n" << customer.rentedCars;
+                    tempFile << "\n" << customer.name;
+                    tempFile << "\n"<< newData.fineDue;
+                    tempFile << "\n" << customer.customer_record;
+                }
+                // tempFile << "\n" << newData.degree;
+                
+                
+            }
+        }
+        read.close();
+        tempFile.close();
+        remove("employee.txt");
+        rename("temp.txt", "employee.txt");
+        cout << "\n\tData updated successfuly";
+    }
+    else {
+        cout<<"\n\tNo change implemented";
+        throw "\n\tRecord not updated";
+    }
+    }
+}
+
+int invalidInput(int i){
+    if(i==-1){
+        cout<<"\n\tInvalid input";
+        cout<<"\n\tEnter correct input";
+    }
     return 0;
+}
+
+int main()
+{
+
+    
+     cout<<"\n\t\tWelcome User!";
+    cout<<"\n\tLogin as : ";
+    cout<<"\n\t\t1.Manager";
+    cout<<"\n\t\t2.Customer";
+    cout<<"\n\t\t3.Employee";
+     cout << "\n\tEnter choice : ";
+
+    int category;
+    cin >> category;
+        while(std::cin.fail() || category<1 || category>3) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+      cout<<"\n\tLogin as : ";
+    cout<<"\n\t\t1.Manager";
+    cout<<"\n\t\t2.Customer";
+    cout<<"\n\t\t3.Employee";
+        cout << "\n\tEnter choice : ";
+    std::cin >> category;
+    }
+
+     if(category==2){
+        int id;
+        int password;
+        cout<<"\n\tNote: Enter 0 to Logout";
+        cout<<"\n\tEnter your ID : ";
+        cin>>id;
+        while(std::cin.fail() || id<0 || ((id!=0)&&(!checkUser(id)))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(cin.fail()){
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    else if(!checkUser(id)){std::cout<<"\n\tNo such user ID exists \n\tEnter ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> id;;
+}
+if(id==0){
+    category=0;
+}
+
+
+
+if(category==2){
+
+    cout<<"\n\tNote: Enter 0 to Logout";
+        cout<<"\n\tEnter your Password : ";
+        cin>>password;
+        while(std::cin.fail() || password<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    // else if(!checkUser(id)){std::cout<<"\n\tNo such user ID exists \n\tEnter ID: ";}
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> password;
+}
+if(password==0){
+    category=0;
+}
+
+} 
+if(category==2){
+    if(!validateCustomer(id,password)){
+        cout<<"\n\tInvalid password";
+    }
+    else{
+        Customer customer;
+    customer.setCustomer(id);
+        int option2;
+        cout<<"\n\t--Welocome "<<customer.name<<"--";
+        while (true)
+        { 
+        cout<<"\n\t1. Logout";
+        cout<<"\n\t2. Profile";
+        cout<<"\n\t3. Available cars";
+        cout<<"\n\t4. Rentable cars";
+        cout<<"\n\t5. Rent a car";
+        cout<<"\n\t6. Rented car(s)";
+        cout<<"\n\t7. Return car";
+        cout << "\n\tEnter choice : ";
+        cin>>option2;
+        while(std::cin.fail() || option2<1 || option2>7) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+     cout<<"\n\t1. Logout";
+        cout<<"\n\t2. Profile";
+        cout<<"\n\t3. Available cars";
+        cout<<"\n\t4. Rentable cars";
+        cout<<"\n\t5. Rent a car";
+        cout<<"\n\t6. Rented car(s)";
+        cout<<"\n\t7. Return car";
+    cout << "\n\tEnter choice : ";
+    std::cin >> option2;
+    }
+     
+    
+    if(option2==1){
+    break;
+    }
+    if(option2==2){
+        customer.printCustomer();
+    }
+    if(option2==3){
+    readAvailableCarData();
+    }
+    if(option2==4){
+    customer.readRentableCarData();
+    }
+    if(option2==5){
+    // customer.rentaCar();
+    try{
+              customer.rentaCar();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+    }
+    if(option2==6){
+        cout<<"\n\tCurrently rented cars : \n";
+        customer.rentedCarData();
+    }
+    if(option2==7){
+        try{
+              customer.returnRequest();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+    
+    }
+     }
+}
+    }
+}
+
+
+if(category==3){
+        int id;
+        int password;
+        cout<<"\n\tNote: Enter 0 to Logout";
+        cout<<"\n\tEnter your ID : ";
+        cin>>id;
+        while(std::cin.fail() || id<0 || ((id!=0)&&(!checkUser(id)))) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    if(cin.fail()){
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    else if(!checkUser(id)){std::cout<<"\n\tNo such user ID exists \n\tEnter ID: ";}
+    else{
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    }
+    std::cin >> id;;
+}
+if(id==0){
+    category=0;
+}
+
+
+
+if(category==3){
+
+    cout<<"\n\tNote: Enter 0 to Logout";
+        cout<<"\n\tEnter your Password : ";
+        cin>>password;
+        while(std::cin.fail() || password<0) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    // else if(!checkUser(id)){std::cout<<"\n\tNo such user ID exists \n\tEnter ID: ";}
+        std::cout << "\n\tInvaild entry.  Enter a (+) DIGITS : ";
+    std::cin >> password;
+}
+if(password==0){
+    category=0;
+}
+
+} 
+if(category==3){
+    if(!validateEmployee(id,password)){
+        cout<<"\n\tInvalid password";
+    }
+    else{
+        Employee customer;
+    customer.setEmployee(id);
+        int option2;
+        cout<<"\n\t--Welocome "<<customer.name<<"--";
+        while (true)
+        { 
+        cout<<"\n\t1. Logout";
+        cout<<"\n\t2. Profile";
+        cout<<"\n\t3. Available cars";
+        cout<<"\n\t4. Rentable cars";
+        cout<<"\n\t5. Rent a car";
+        cout<<"\n\t6. Rented car(s)";
+        cout<<"\n\t7. Return car";
+        cout << "\n\tEnter choice : ";
+        cin>>option2;
+        while(std::cin.fail() || option2<1 || option2>7) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+     cout<<"\n\t1. Logout";
+        cout<<"\n\t2. Profile";
+        cout<<"\n\t3. Available cars";
+        cout<<"\n\t4. Rentable cars";
+        cout<<"\n\t5. Rent a car";
+        cout<<"\n\t6. Rented car(s)";
+        cout<<"\n\t7. Return car";
+    cout << "\n\tEnter choice : ";
+    std::cin >> option2;
+    }
+     
+    
+    if(option2==1){
+    break;
+    }
+    if(option2==2){
+        customer.printEmployee();
+    }
+    if(option2==3){
+    readAvailableCarDataEmployee();
+    }
+    if(option2==4){
+    customer.readRentableCarData();
+    }
+    if(option2==5){
+    // customer.rentaCar();
+    try{
+              customer.rentaCar();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+    }
+    if(option2==6){
+        cout<<"\n\tCurrently rented cars : \n";
+        customer.rentedCarData();
+    }
+    if(option2==7){
+        try{
+              customer.returnRequest();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+    
+    }
+     }
+}
+    }
+}
+
+
+  if(category==1){
+        int ID;
+        int Password;
+        cout<<"\n\tNote: Enter 1 to Logout";
+        cout<<"\n\tEnter ID : ";
+        
+        cin>>ID;
+         while(std::cin.fail() || (ID!=0 && ID!=1)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild ID\n";
+    cout<<"\n\tNote: Enter 1 to Logout";
+      cout<<"\n\tEnter ID : ";
+      
+    std::cin >> ID;
+    if(ID==1){
+        category=0;
+        break;
+    }
+    }
+    if (ID==1)
+    {
+        category=0;
+    }
+    
+    if(ID==0){cout<<"\n\tNote: Enter 1 to Logout";
+        cout<<"\n\tPassword : ";
+        cin>>Password;
+         while(std::cin.fail() || (Password!=0 && Password!=1)) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild Password\n";
+    cout<<"\n\tNote: Enter 1 to Logout";
+      cout<<"\n\tEnter Password : ";
+    std::cin >> Password;
+    if(Password==1){
+        category=0;
+        break;
+    }
+    }
+    
+    }
+    if (Password==1)
+    {
+        category=0;
+    }
+    }
+
+
+    if(category==1){
+        cout<<"\n\tHello Manager!\n";
+        // while (true)
+        // {
+    cout<<"\n\tManage : ";
+    cout<<"\n\t1. Car Data";
+    cout<<"\n\t2. Customer Data";
+    cout<<"\n\t3. Employee Data";
+    cout << "\n\tEnter choice : ";
+    int option;
+    cin>>option;
+    while(std::cin.fail() || option<1 || option>3) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+     cout<<"\n\tManage : ";
+    cout<<"\n\t1. Car Data";
+    cout<<"\n\t2. Customer Data";
+    cout<<"\n\t3. Employee Data";
+    cout << "\n\tEnter choice : ";
+    std::cin >> option;
+    }
+    if(option==1){
+        int choice;
+    while (true)
+    {
+        cout<<"\n\t\t1. Add car data";
+        cout<<"\n\t\t2. Read car data";
+        cout<<"\n\t\t3. Search car data";
+        cout<<"\n\t\t4. Delete car data";
+        cout<<"\n\t\t5. Update car data";
+        cout<<"\n\t\t6. Logout";
+        cout << "\n\tEnter choice : ";
+        cin>>choice;
+        while(std::cin.fail() || choice<1 || choice>6) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+      
+    cout<<"\n\t\t1. Add car";
+        cout<<"\n\t\t2. Read car";
+        cout<<"\n\t\t3. Search car data";
+        cout<<"\n\t\t4. Delete car data";
+        cout<<"\n\t\t5. Update car data";
+        cout<<"\n\t\t6. Logout";
+        cout << "\n\tEnter choice : ";
+    std::cin >> choice;
+    }
+        if(choice == 1){addCar();}
+        else if(choice == 2){readCarData();}
+        else if(choice == 3){
+             try{
+              searchCarData();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+        }
+        else if(choice == 4){
+             try{
+              deleteCarData();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+        }
+        else if(choice == 5){
+             try{
+              updateCarData();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+        }
+        else if(choice==6){
+            break;
+        }
+    }
+
+    }
+    else if(option==2 ){
+        while (true) {
+        cout << "\n\t1.Add customer data";
+        cout << "\n\t2.See customer data";
+        cout << "\n\t3.Search customer data";
+        cout << "\n\t4.Delete customer data";
+        cout << "\n\t5.Update customer data";
+        cout << "\n\t6.Clear Due data";
+                    cout << "\n\t7.Logout";
+
+        int choice;
+        cout << "\n\tEnter choice : ";
+        cin >> choice;
+        while(std::cin.fail() || choice<1 || choice>7) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+      cout << "\n\t1.Add customer data";
+        cout << "\n\t2.See customer data";
+        cout << "\n\t3.Search customer data";
+        cout << "\n\t4.Delete customer data";
+        cout << "\n\t5.Update customer data";
+        cout << "\n\t6.Clear Due";
+        cout << "\n\t7.Logout";
+        cout << "\n\tEnter choice : ";
+    std::cin >> choice;
+    }
+
+        switch (choice) {
+        case 1:
+            addCustomer();
+            try{
+            
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                
+            }
+            // addCustomer();
+            // Customer::upCustomerCount();
+            break;
+        case 2:
+            try{
+               readDataCustomer();;
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            break;
+        case 3:
+            try{
+               int id = searchDataCustomer();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            // searchData();
+            break;
+        case 4:
+        try{
+              deleteCustomerData();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            // deleteData();
+            
+            break;
+        case 5:
+            // updateData();
+            try{
+               updateDataCustomer();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                // checkUser(-1);
+                invalidInput(-1);
+            }
+            
+            break;
+        case 6:
+            // updateData();
+            try{
+               clearDueCustomer();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                // checkUser(-1);
+                invalidInput(-1);
+            }
+            
+            break;
+        }
+        if(choice==7){
+            break;
+        }
+    }
+    }
+    else if(option==3 ){
+        while (true) {
+        cout << "\n\t1.Add employee data";
+        cout << "\n\t2.See employee data";
+        cout << "\n\t3.Search employee data";
+        cout << "\n\t4.Delete employee data";
+        cout << "\n\t5.Update employee data";
+        cout << "\n\t6.Clear Due data";
+                    cout << "\n\t7.Logout";
+                    cout << "\n\tEnter choice : ";
+
+        int choice;
+        // cout << "\n\tEnter choice : ";
+        cin >> choice;
+        while(std::cin.fail() || choice<1 || choice>7) {
+    std::cin.clear();
+    std::cin.ignore(std::numeric_limits<std::streamsize>::max(),'\n');
+    std::cout << "\n\tInvaild input\n";
+      cout << "\n\t1.Add employee data";
+        cout << "\n\t2.See employee data";
+        cout << "\n\t3.Search employee data";
+        cout << "\n\t4.Delete employee data";
+        cout << "\n\t5.Update employee data";
+        cout << "\n\t6.Clear Due data";
+                    cout << "\n\t7.Logout";
+                    cout << "\n\tEnter choice : ";
+
+    std::cin >> choice;
+    }
+
+        switch (choice) {
+        case 1:
+            addEmployee();
+            try{
+            
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                
+            }
+            // addCustomer();
+            // Customer::upCustomerCount();
+            break;
+        case 2:
+            try{
+               readDataEmployee();;
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            break;
+        case 3:
+            try{
+               int id = searchDataEmployee();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            // searchData();
+            break;
+        case 4:
+        try{
+              deleteEmployeeData();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+            }
+            // deleteData();
+            
+            break;
+        case 5:
+            // updateData();
+            try{
+               updateDataEmployee();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                // checkUser(-1);
+                invalidInput(-1);
+            }
+            
+            break;
+        case 6:
+            // updateData();
+            try{
+               clearDueEmployee();
+            } catch(const char* msg){
+                cerr<<msg<<endl;
+                // checkUser(-1);
+                invalidInput(-1);
+            }
+            
+            break;
+        }
+        if(choice==7){
+            break;
+        }
+    }
+    }
+
+}
 }
